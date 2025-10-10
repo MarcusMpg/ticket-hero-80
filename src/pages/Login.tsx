@@ -12,12 +12,12 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { login, isAuthenticated } = useAuth();
+  const { login: loginFn, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
   if (isAuthenticated) {
-    return <Navigate to="/abrir-chamado" replace />;
+    return <Navigate to="/meus-chamados" replace />;
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -25,44 +25,30 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      // Simulação de API - substituir pela chamada real
-      // const response = await fetch('/api/login', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ email, senha }),
-      // });
+      const { error } = await loginFn(email, senha);
 
-      // Simulação de login bem-sucedido
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Mock de dados do usuário
-      const mockUser = {
-        id_funcionario: 1,
-        nome: "João Silva",
-        email: email,
-        eh_atendente: email.includes("ti"),
-        id_setor: 1,
-      };
-
-      const mockToken = "mock-jwt-token-" + Date.now();
-
-      login(mockToken, mockUser);
+      if (error) {
+        toast({
+          title: "Erro ao fazer login",
+          description: error.message,
+          variant: "destructive",
+        });
+        return;
+      }
 
       toast({
         title: "Login realizado com sucesso!",
-        description: `Bem-vindo, ${mockUser.nome}`,
+        description: "Bem-vindo ao sistema de chamados.",
       });
 
-      // Redirecionar baseado no tipo de usuário
-      if (mockUser.eh_atendente) {
-        navigate("/painel-ti");
-      } else {
-        navigate("/abrir-chamado");
-      }
-    } catch (error) {
+      // Wait for auth state to update, then redirect
+      setTimeout(() => {
+        navigate('/meus-chamados');
+      }, 100);
+    } catch (error: any) {
       toast({
         title: "Erro ao fazer login",
-        description: "Verifique suas credenciais e tente novamente.",
+        description: error.message || "Verifique suas credenciais e tente novamente.",
         variant: "destructive",
       });
     } finally {
@@ -116,8 +102,10 @@ export default function Login() {
               {isLoading ? "Entrando..." : "Entrar"}
             </Button>
           </form>
-          <div className="mt-4 text-center text-sm text-muted-foreground">
-            <p>Dica: Use um e-mail com "ti" para entrar como atendente</p>
+          <div className="mt-4 text-center">
+            <p className="text-sm text-muted-foreground">
+              Não tem uma conta? Entre em contato com o administrador
+            </p>
           </div>
         </CardContent>
       </Card>

@@ -4,11 +4,12 @@ import { ChamadoCard } from "@/components/chamados/ChamadoCard";
 import { useAuth } from "@/contexts/AuthContext";
 import { Chamado } from "@/types/chamado";
 import { Navigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function PainelTI() {
   const [chamados, setChamados] = useState<Chamado[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { user, token } = useAuth();
+  const { user } = useAuth();
 
   if (!user?.eh_atendente) {
     return <Navigate to="/abrir-chamado" replace />;
@@ -17,57 +18,35 @@ export default function PainelTI() {
   useEffect(() => {
     const fetchChamados = async () => {
       try {
-        // Simulação de API - substituir pela chamada real
-        // const response = await fetch('/api/chamados/fila-ti', {
-        //   headers: { 'Authorization': `Bearer ${token}` }
-        // });
-        // const data = await response.json();
+        const { data, error } = await supabase
+          .from('chamados')
+          .select(`
+            *,
+            solicitante:usuario!chamados_id_solicitante_fkey(nome),
+            atendente:usuario!chamados_id_atendente_fkey(nome)
+          `)
+          .is('id_atendente', null)
+          .eq('status_chamado', 'aberto')
+          .order('data_abertura', { ascending: false });
 
-        // Mock de dados
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        const mockChamados: Chamado[] = [
-          {
-            id_chamado: 3,
-            titulo: "Acesso ao sistema de vendas",
-            descricao: "Não consigo acessar o sistema de vendas, aparece erro 403.",
-            status: "aberto",
-            prioridade: "media",
-            id_solicitante: 1,
-            id_atendente: null,
-            id_setor_destino: 1,
-            data_abertura: new Date().toISOString(),
-            data_fechamento: null,
-            solicitante_nome: "João Silva",
-          },
-          {
-            id_chamado: 4,
-            titulo: "Instalar novo software",
-            descricao: "Preciso do Adobe Photoshop instalado no meu computador.",
-            status: "aberto",
-            prioridade: "baixa",
-            id_solicitante: 3,
-            id_atendente: null,
-            id_setor_destino: 1,
-            data_abertura: new Date(Date.now() - 3600000).toISOString(),
-            data_fechamento: null,
-            solicitante_nome: "Maria Santos",
-          },
-          {
-            id_chamado: 5,
-            titulo: "Problema na impressora",
-            descricao: "A impressora do 2º andar está travando papel constantemente.",
-            status: "aberto",
-            prioridade: "alta",
-            id_solicitante: 4,
-            id_atendente: null,
-            id_setor_destino: 1,
-            data_abertura: new Date(Date.now() - 7200000).toISOString(),
-            data_fechamento: null,
-            solicitante_nome: "Pedro Oliveira",
-          },
-        ];
+        if (error) throw error;
 
-        setChamados(mockChamados);
+        const chamadosMapeados: Chamado[] = (data || []).map((item: any) => ({
+          id_chamado: item.id_chamado,
+          titulo: item.titulo,
+          descricao: item.descricao,
+          status: item.status_chamado as any,
+          prioridade: item.prioridade as any,
+          id_solicitante: item.id_solicitante,
+          id_atendente: item.id_atendente,
+          id_setor_destino: item.id_setor,
+          data_abertura: item.data_abertura,
+          data_fechamento: item.data_fechamento,
+          solicitante_nome: item.solicitante?.nome,
+          atendente_nome: item.atendente?.nome,
+        }));
+
+        setChamados(chamadosMapeados);
       } catch (error) {
         console.error("Erro ao carregar fila de chamados:", error);
       } finally {
@@ -76,7 +55,7 @@ export default function PainelTI() {
     };
 
     fetchChamados();
-  }, [token]);
+  }, []);
 
   if (isLoading) {
     return (

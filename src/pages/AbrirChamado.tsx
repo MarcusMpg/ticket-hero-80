@@ -10,38 +10,37 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { Ticket } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function AbrirChamado() {
   const [titulo, setTitulo] = useState("");
   const [descricao, setDescricao] = useState("");
   const [prioridade, setPrioridade] = useState("media");
   const [isLoading, setIsLoading] = useState(false);
-  const { user, token } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) return;
+    
     setIsLoading(true);
 
     try {
-      // Simulação de API - substituir pela chamada real
-      // const response = await fetch('/api/chamados', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //     'Authorization': `Bearer ${token}`
-      //   },
-      //   body: JSON.stringify({
-      //     titulo,
-      //     descricao,
-      //     prioridade,
-      //     id_solicitante: user?.id_funcionario,
-      //     id_setor_destino: 1, // ID do setor TI
-      //   }),
-      // });
+      const { error } = await supabase
+        .from('chamados')
+        .insert({
+          titulo,
+          descricao,
+          prioridade,
+          status_chamado: 'aberto',
+          id_solicitante: user.id_usuario,
+          id_setor: 1, // ID do setor TI - pode ser configurável
+          id_filial: user.id_filial,
+        });
 
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      if (error) throw error;
 
       toast({
         title: "Chamado aberto com sucesso!",
@@ -49,10 +48,10 @@ export default function AbrirChamado() {
       });
 
       navigate("/meus-chamados");
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Erro ao abrir chamado",
-        description: "Tente novamente mais tarde.",
+        description: error.message || "Tente novamente mais tarde.",
         variant: "destructive",
       });
     } finally {

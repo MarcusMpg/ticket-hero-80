@@ -6,67 +6,47 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Chamado } from "@/types/chamado";
 import { Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function MeusChamados() {
   const [chamados, setChamados] = useState<Chamado[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { user, token } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchChamados = async () => {
+      if (!user) return;
+      
       try {
-        // Simulação de API - substituir pela chamada real
-        // const response = await fetch(`/api/chamados/solicitante/${user?.id_funcionario}`, {
-        //   headers: { 'Authorization': `Bearer ${token}` }
-        // });
-        // const data = await response.json();
+        const { data, error } = await supabase
+          .from('chamados')
+          .select(`
+            *,
+            solicitante:usuario!chamados_id_solicitante_fkey(nome),
+            atendente:usuario!chamados_id_atendente_fkey(nome)
+          `)
+          .eq('id_solicitante', user.id_usuario)
+          .order('data_abertura', { ascending: false });
 
-        // Mock de dados
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        const mockChamados: Chamado[] = [
-          {
-            id_chamado: 1,
-            titulo: "Computador não liga",
-            descricao: "O computador da minha estação não está ligando desde ontem.",
-            status: "em_andamento",
-            prioridade: "alta",
-            id_solicitante: user?.id_funcionario || 1,
-            id_atendente: 2,
-            id_setor_destino: 1,
-            data_abertura: new Date(Date.now() - 86400000).toISOString(),
-            data_fechamento: null,
-            atendente_nome: "Carlos Santos",
-          },
-          {
-            id_chamado: 2,
-            titulo: "Senha do e-mail expirou",
-            descricao: "Preciso redefinir a senha do meu e-mail corporativo.",
-            status: "resolvido",
-            prioridade: "media",
-            id_solicitante: user?.id_funcionario || 1,
-            id_atendente: 2,
-            id_setor_destino: 1,
-            data_abertura: new Date(Date.now() - 172800000).toISOString(),
-            data_fechamento: new Date(Date.now() - 86400000).toISOString(),
-            atendente_nome: "Carlos Santos",
-          },
-          {
-            id_chamado: 3,
-            titulo: "Acesso ao sistema de vendas",
-            descricao: "Não consigo acessar o sistema de vendas, aparece erro 403.",
-            status: "aberto",
-            prioridade: "media",
-            id_solicitante: user?.id_funcionario || 1,
-            id_atendente: null,
-            id_setor_destino: 1,
-            data_abertura: new Date().toISOString(),
-            data_fechamento: null,
-            atendente_nome: null,
-          },
-        ];
+        if (error) throw error;
 
-        setChamados(mockChamados);
+        const chamadosMapeados: Chamado[] = (data || []).map((item: any) => ({
+          id_chamado: item.id_chamado,
+          titulo: item.titulo,
+          descricao: item.descricao,
+          status: item.status_chamado as any,
+          prioridade: item.prioridade as any,
+          id_solicitante: item.id_solicitante,
+          id_atendente: item.id_atendente,
+          id_setor_destino: item.id_setor,
+          data_abertura: item.data_abertura,
+          data_fechamento: item.data_fechamento,
+          solicitante_nome: item.solicitante?.nome,
+          atendente_nome: item.atendente?.nome,
+        }));
+
+        setChamados(chamadosMapeados);
       } catch (error) {
         console.error("Erro ao carregar chamados:", error);
       } finally {
@@ -75,7 +55,7 @@ export default function MeusChamados() {
     };
 
     fetchChamados();
-  }, [user, token]);
+  }, [user]);
 
   if (isLoading) {
     return (

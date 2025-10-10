@@ -10,6 +10,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { Chamado, Interacao } from "@/types/chamado";
 import { ArrowLeft, User, Clock, MessageSquare } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const statusConfig = {
   aberto: { label: "Aberto", variant: "info" as const },
@@ -28,7 +29,7 @@ const prioridadeConfig = {
 export default function DetalheChamado() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user, token } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   const [chamado, setChamado] = useState<Chamado | null>(null);
   const [interacoes, setInteracoes] = useState<Interacao[]>([]);
@@ -38,62 +39,68 @@ export default function DetalheChamado() {
 
   useEffect(() => {
     const fetchChamado = async () => {
+      if (!id) return;
+      
       try {
-        // Mock de dados
-        await new Promise((resolve) => setTimeout(resolve, 800));
-        const mockChamado: Chamado = {
-          id_chamado: Number(id),
-          titulo: "Computador não liga",
-          descricao: "O computador da minha estação não está ligando desde ontem. Já tentei verificar os cabos e a tomada, mas o problema persiste.",
-          status: "em_andamento",
-          prioridade: "alta",
-          id_solicitante: 1,
-          id_atendente: 2,
-          id_setor_destino: 1,
-          data_abertura: new Date(Date.now() - 86400000).toISOString(),
-          data_fechamento: null,
-          solicitante_nome: "João Silva",
-          atendente_nome: "Carlos Santos",
+        // Fetch chamado
+        const { data: chamadoData, error: chamadoError } = await supabase
+          .from('chamados')
+          .select(`
+            *,
+            solicitante:usuario!chamados_id_solicitante_fkey(nome),
+            atendente:usuario!chamados_id_atendente_fkey(nome)
+          `)
+          .eq('id_chamado', Number(id))
+          .single();
+
+        if (chamadoError) throw chamadoError;
+
+        const chamadoMapeado: Chamado = {
+          id_chamado: chamadoData.id_chamado,
+          titulo: chamadoData.titulo,
+          descricao: chamadoData.descricao,
+          status: chamadoData.status_chamado as any,
+          prioridade: chamadoData.prioridade as any,
+          id_solicitante: chamadoData.id_solicitante,
+          id_atendente: chamadoData.id_atendente,
+          id_setor_destino: chamadoData.id_setor,
+          data_abertura: chamadoData.data_abertura,
+          data_fechamento: chamadoData.data_fechamento,
+          solicitante_nome: (chamadoData.solicitante as any)?.[0]?.nome,
+          atendente_nome: (chamadoData.atendente as any)?.[0]?.nome,
         };
 
-        const mockInteracoes: Interacao[] = [
-          {
-            id_interacao: 1,
-            id_chamado: Number(id),
-            id_funcionario: 1,
-            tipo_interacao: "comentario",
-            mensagem: "Chamado aberto pelo sistema.",
-            data_interacao: new Date(Date.now() - 86400000).toISOString(),
-            funcionario_nome: "João Silva",
-          },
-          {
-            id_interacao: 2,
-            id_chamado: Number(id),
-            id_funcionario: 2,
-            tipo_interacao: "atribuicao",
-            mensagem: "Chamado assumido por Carlos Santos.",
-            data_interacao: new Date(Date.now() - 82800000).toISOString(),
-            funcionario_nome: "Carlos Santos",
-          },
-          {
-            id_interacao: 3,
-            id_chamado: Number(id),
-            id_funcionario: 2,
-            tipo_interacao: "comentario",
-            mensagem: "Verificando o problema. Vou até sua estação em breve.",
-            data_interacao: new Date(Date.now() - 82000000).toISOString(),
-            funcionario_nome: "Carlos Santos",
-          },
-        ];
+        setChamado(chamadoMapeado);
+        setNovoStatus(chamadoMapeado.status);
 
-        setChamado(mockChamado);
-        setInteracoes(mockInteracoes);
-        setNovoStatus(mockChamado.status);
-      } catch (error) {
+        // Fetch interacoes
+        const { data: interacoesData, error: interacoesError } = await supabase
+          .from('interacao')
+          .select(`
+            *,
+            usuario(nome)
+          `)
+          .eq('id_chamado', Number(id))
+          .order('data_interacao', { ascending: true });
+
+        if (interacoesError) throw interacoesError;
+
+        const interacoesMapeadas: Interacao[] = (interacoesData || []).map((item: any) => ({
+          id_interacao: item.id_interacao,
+          id_chamado: item.id_chamado,
+          id_funcionario: item.id_usuario,
+          tipo_interacao: item.tipo_interacao as any,
+          mensagem: item.conteudo,
+          data_interacao: item.data_interacao,
+          funcionario_nome: item.usuario?.nome,
+        }));
+
+        setInteracoes(interacoesMapeadas);
+      } catch (error: any) {
         console.error("Erro ao carregar chamado:", error);
         toast({
           title: "Erro",
-          description: "Não foi possível carregar os detalhes do chamado.",
+          description: error.message || "Não foi possível carregar os detalhes do chamado.",
           variant: "destructive",
         });
       } finally {
@@ -102,23 +109,36 @@ export default function DetalheChamado() {
     };
 
     fetchChamado();
-  }, [id, token, toast]);
+  }, [id, toast]);
 
   const handleAdicionarComentario = async () => {
-    if (!novoComentario.trim()) return;
+    if (!novoComentario.trim() || !user) return;
 
     try {
-      // Simulação de API
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      const { data, error } = await supabase
+        .from('interacao')
+        .insert({
+          id_chamado: Number(id),
+          id_usuario: user.id_usuario,
+          tipo_interacao: 'comentario',
+          conteudo: novoComentario,
+        })
+        .select(`
+          *,
+          usuario(nome)
+        `)
+        .single();
+
+      if (error) throw error;
 
       const novaInteracao: Interacao = {
-        id_interacao: interacoes.length + 1,
-        id_chamado: Number(id),
-        id_funcionario: user?.id_funcionario || 1,
-        tipo_interacao: "comentario",
-        mensagem: novoComentario,
-        data_interacao: new Date().toISOString(),
-        funcionario_nome: user?.nome || "Usuário",
+        id_interacao: data.id_interacao,
+        id_chamado: data.id_chamado,
+        id_funcionario: data.id_usuario,
+        tipo_interacao: data.tipo_interacao as any,
+        mensagem: data.conteudo,
+        data_interacao: data.data_interacao,
+        funcionario_nome: (data as any).usuario?.nome,
       };
 
       setInteracoes([...interacoes, novaInteracao]);
@@ -128,36 +148,47 @@ export default function DetalheChamado() {
         title: "Comentário adicionado",
         description: "Seu comentário foi registrado com sucesso.",
       });
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Erro",
-        description: "Não foi possível adicionar o comentário.",
+        description: error.message || "Não foi possível adicionar o comentário.",
         variant: "destructive",
       });
     }
   };
 
   const handleAssumirChamado = async () => {
+    if (!user) return;
+    
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      const { error } = await supabase
+        .from('chamados')
+        .update({
+          id_atendente: user.id_usuario,
+          status_chamado: 'em_andamento',
+        })
+        .eq('id_chamado', Number(id));
+
+      if (error) throw error;
 
       if (chamado) {
         setChamado({
           ...chamado,
-          id_atendente: user?.id_funcionario || 2,
-          atendente_nome: user?.nome || "Atendente",
+          id_atendente: user.id_usuario,
+          atendente_nome: user.nome,
           status: "em_andamento",
         });
+        setNovoStatus("em_andamento");
       }
 
       toast({
         title: "Chamado assumido",
         description: "Você agora é o responsável por este chamado.",
       });
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Erro",
-        description: "Não foi possível assumir o chamado.",
+        description: error.message || "Não foi possível assumir o chamado.",
         variant: "destructive",
       });
     }
@@ -167,7 +198,12 @@ export default function DetalheChamado() {
     if (novoStatus === chamado?.status) return;
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      const { error } = await supabase
+        .from('chamados')
+        .update({ status_chamado: novoStatus })
+        .eq('id_chamado', Number(id));
+
+      if (error) throw error;
 
       if (chamado) {
         setChamado({
@@ -180,10 +216,10 @@ export default function DetalheChamado() {
         title: "Status atualizado",
         description: "O status do chamado foi alterado.",
       });
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Erro",
-        description: "Não foi possível atualizar o status.",
+        description: error.message || "Não foi possível atualizar o status.",
         variant: "destructive",
       });
     }
@@ -227,7 +263,7 @@ export default function DetalheChamado() {
   }
 
   const ehAtendente = user?.eh_atendente;
-  const ehSolicitante = user?.id_funcionario === chamado.id_solicitante;
+  const ehSolicitante = user?.id_usuario === chamado.id_solicitante;
 
   return (
     <MainLayout>
