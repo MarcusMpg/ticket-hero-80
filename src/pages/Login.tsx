@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,9 +18,15 @@ export default function Login() {
 
   // Redirect authenticated users
   if (!authLoading && isAuthenticated) {
-    navigate('/meus-chamados', { replace: true });
-    return null;
+    return <Navigate to="/meus-chamados" replace />;
   }
+
+  // Reset button loading once auth state resolves
+  useEffect(() => {
+    if (!authLoading) {
+      setIsLoading(false);
+    }
+  }, [authLoading]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -35,23 +35,30 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check active session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    setIsLoading(true);
+
+    // Listen for auth changes FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       if (session) {
-        loadUserData(session.user.id);
+        // Defer Supabase calls to avoid deadlocks in the callback
+        setTimeout(() => {
+          loadUserData(session.user.id);
+        }, 0);
       } else {
+        setUser(null);
         setIsLoading(false);
       }
     });
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    // Then check active session
+    supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (session) {
-        loadUserData(session.user.id);
+        setTimeout(() => {
+          loadUserData(session.user.id);
+        }, 0);
       } else {
-        setUser(null);
         setIsLoading(false);
       }
     });
