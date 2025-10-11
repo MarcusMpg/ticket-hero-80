@@ -61,6 +61,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const loadUserData = async (authId: string) => {
     try {
+      setIsLoading(true);
+      
       // Get profile with usuario data
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
@@ -68,9 +70,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         .eq('id', authId)
         .maybeSingle();
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error('Profile error:', profileError);
+        throw profileError;
+      }
+      
       if (!profile?.id_usuario) {
-        setIsLoading(false);
+        console.log('No profile found for user');
         return;
       }
 
@@ -81,14 +87,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         .eq('id_usuario', profile.id_usuario)
         .single();
 
-      if (usuarioError) throw usuarioError;
+      if (usuarioError) {
+        console.error('Usuario error:', usuarioError);
+        throw usuarioError;
+      }
 
       setUser({
         id_usuario: usuario.id_usuario,
         nome: usuario.nome,
         email: usuario.email,
         tipo_usuario: usuario.tipo_usuario,
-        id_setor: usuario.id_filial || 1,  // Usando id_filial como fallback pois id_setor não existe na tabela usuario
+        id_setor: usuario.id_filial || 1,
         id_filial: usuario.id_filial,
         ativo: usuario.ativo,
         authId,
@@ -96,6 +105,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       });
     } catch (error) {
       console.error('Error loading user data:', error);
+      setUser(null);
     } finally {
       setIsLoading(false);
     }

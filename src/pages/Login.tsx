@@ -12,12 +12,14 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { login: loginFn, isAuthenticated } = useAuth();
+  const { login: loginFn, isAuthenticated, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  if (isAuthenticated) {
-    return <Navigate to="/meus-chamados" replace />;
+  // Redirect authenticated users
+  if (!authLoading && isAuthenticated) {
+    navigate('/meus-chamados', { replace: true });
+    return null;
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -33,6 +35,7 @@ export default function Login() {
           description: error.message,
           variant: "destructive",
         });
+        setIsLoading(false);
         return;
       }
 
@@ -41,17 +44,13 @@ export default function Login() {
         description: "Bem-vindo ao sistema de chamados.",
       });
 
-      // Wait for auth state to update, then redirect
-      setTimeout(() => {
-        navigate('/meus-chamados');
-      }, 100);
+      // Don't set isLoading to false - let the auth state change handle navigation
     } catch (error: any) {
       toast({
         title: "Erro ao fazer login",
         description: error.message || "Verifique suas credenciais e tente novamente.",
         variant: "destructive",
       });
-    } finally {
       setIsLoading(false);
     }
   };
