@@ -15,7 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 export default function AbrirChamado() {
   const [titulo, setTitulo] = useState("");
   const [descricao, setDescricao] = useState("");
-  const [prioridade, setPrioridade] = useState("media");
+  const [prioridade, setPrioridade] = useState("baixa");
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -33,8 +33,8 @@ export default function AbrirChamado() {
         .insert({
           titulo,
           descricao,
-          prioridade,
-          status_chamado: 'aberto',
+          prioridade: prioridade.toUpperCase(),
+          status_chamado: 'ABERTO',
           id_solicitante: user.id_usuario,
           id_setor: 1, // ID do setor TI - pode ser configurável
           id_filial: user.id_filial,
