@@ -16,17 +16,17 @@ export default function Login() {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Redirect authenticated users
-  if (!authLoading && isAuthenticated) {
-    return <Navigate to="/meus-chamados" replace />;
-  }
-
   // Reset button loading once auth state resolves
   useEffect(() => {
     if (!authLoading) {
       setIsLoading(false);
     }
   }, [authLoading]);
+
+  // Redirect authenticated users (after hooks)
+  if (!authLoading && isAuthenticated) {
+    return <Navigate to="/meus-chamados" replace />;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
