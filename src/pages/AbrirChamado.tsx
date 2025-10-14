@@ -107,9 +107,9 @@ export default function AbrirChamado() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="baixa">Baixa</SelectItem>
-                    <SelectItem value="media">Média</SelectItem>
-                    <SelectItem value="alta">Alta</SelectItem>
+                    <SelectItem value="BAIXA">Baixa</SelectItem>
+                    <SelectItem value="MEDIA">Média</SelectItem>
+                    <SelectItem value="ALTA">Alta</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
