@@ -83,7 +83,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
       
       if (!profile?.id_usuario) {
-        console.log('No profile found for user');
+        console.error('Profile not linked to usuario. Profile:', profile);
+        setIsLoading(false);
         return;
       }
 
