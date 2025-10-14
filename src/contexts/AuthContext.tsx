@@ -180,7 +180,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const value = {
     user,
     session,
-    isAuthenticated: !!session && !!user,
+    isAuthenticated: !!session,
     login,
     signup,
     logout,

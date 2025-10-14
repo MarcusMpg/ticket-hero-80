@@ -50,7 +50,7 @@ export default function Login() {
         description: "Bem-vindo ao sistema de chamados.",
       });
 
-      // Don't set isLoading to false - let the auth state change handle navigation
+      setIsLoading(false);
     } catch (error: any) {
       toast({
         title: "Erro ao fazer login",
