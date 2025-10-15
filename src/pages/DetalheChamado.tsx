@@ -126,7 +126,7 @@ export default function DetalheChamado() {
         .insert({
           id_chamado: Number(id),
           id_usuario: user.id_usuario,
-          tipo_interacao: 'comentario',
+          tipo_interacao: 'COMENTARIO',
           conteudo: novoComentario,
         })
         .select(`
