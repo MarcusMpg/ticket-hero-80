@@ -15,6 +15,7 @@ export interface Usuario {
 export interface User extends Usuario {
   authId: string;
   eh_atendente: boolean;
+  eh_admin: boolean;
 }
 
 interface AuthContextType {
@@ -109,7 +110,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         id_filial: usuario.id_filial,
         ativo: usuario.ativo,
         authId,
-        eh_atendente: usuario.tipo_usuario === 'atendente'
+        eh_atendente: usuario.tipo_usuario === 'atendente' || usuario.tipo_usuario === 'ATENDENTE',
+        eh_admin: usuario.tipo_usuario === 'ADMIN' || usuario.tipo_usuario === 'admin'
       });
     } catch (error) {
       console.error('Error loading user data:', error);
