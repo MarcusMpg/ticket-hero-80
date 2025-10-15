@@ -31,20 +31,28 @@ export default function MeusChamados() {
 
         if (error) throw error;
 
-        const chamadosMapeados: Chamado[] = (data || []).map((item: any) => ({
-          id_chamado: item.id_chamado,
-          titulo: item.titulo,
-          descricao: item.descricao,
-          status: item.status_chamado as any,
-          prioridade: item.prioridade as any,
-          id_solicitante: item.id_solicitante,
-          id_atendente: item.id_atendente,
-          id_setor_destino: item.id_setor,
-          data_abertura: item.data_abertura,
-          data_fechamento: item.data_fechamento,
-          solicitante_nome: item.solicitante?.nome,
-          atendente_nome: item.atendente?.nome,
-        }));
+        const normalize = (s: string | null | undefined) =>
+          s ? s.toString().toLowerCase().replace(/\s+/g, "_") : "";
+
+        const chamadosMapeados: Chamado[] = (data || []).map((item: any) => {
+          const statusNorm = normalize(item.status_chamado) as Chamado["status"];
+          const prioridadeNorm = normalize(item.prioridade) as Chamado["prioridade"];
+
+          return {
+            id_chamado: item.id_chamado,
+            titulo: item.titulo,
+            descricao: item.descricao,
+            status: statusNorm,
+            prioridade: prioridadeNorm,
+            id_solicitante: item.id_solicitante,
+            id_atendente: item.id_atendente,
+            id_setor_destino: item.id_setor,
+            data_abertura: item.data_abertura,
+            data_fechamento: item.data_fechamento,
+            solicitante_nome: item.solicitante?.nome,
+            atendente_nome: item.atendente?.nome,
+          };
+        });
 
         setChamados(chamadosMapeados);
       } catch (error) {

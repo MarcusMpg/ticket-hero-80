@@ -91,6 +91,34 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "chamados_id_atendente_fkey"
+            columns: ["id_atendente"]
+            isOneToOne: false
+            referencedRelation: "usuario"
+            referencedColumns: ["id_usuario"]
+          },
+          {
+            foreignKeyName: "chamados_id_filial_fkey"
+            columns: ["id_filial"]
+            isOneToOne: false
+            referencedRelation: "filial"
+            referencedColumns: ["id_filial"]
+          },
+          {
+            foreignKeyName: "chamados_id_setor_fkey"
+            columns: ["id_setor"]
+            isOneToOne: false
+            referencedRelation: "setor"
+            referencedColumns: ["id_setor"]
+          },
+          {
+            foreignKeyName: "chamados_id_solicitante_fkey"
+            columns: ["id_solicitante"]
+            isOneToOne: false
+            referencedRelation: "usuario"
+            referencedColumns: ["id_usuario"]
+          },
+          {
             foreignKeyName: "fk_chamados_atendente"
             columns: ["id_atendente"]
             isOneToOne: false
