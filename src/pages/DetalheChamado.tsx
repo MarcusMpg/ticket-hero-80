@@ -55,12 +55,18 @@ export default function DetalheChamado() {
 
         if (chamadoError) throw chamadoError;
 
+        const normalize = (s: string | null | undefined) =>
+          s ? s.toString().toLowerCase().replace(/\s+/g, "_") : "";
+
+        const statusNorm = normalize(chamadoData.status_chamado) as Chamado["status"];
+        const prioridadeNorm = normalize(chamadoData.prioridade) as Chamado["prioridade"];
+
         const chamadoMapeado: Chamado = {
           id_chamado: chamadoData.id_chamado,
           titulo: chamadoData.titulo,
           descricao: chamadoData.descricao,
-          status: chamadoData.status_chamado as any,
-          prioridade: chamadoData.prioridade as any,
+          status: statusNorm,
+          prioridade: prioridadeNorm,
           id_solicitante: chamadoData.id_solicitante,
           id_atendente: chamadoData.id_atendente,
           id_setor_destino: chamadoData.id_setor,
@@ -165,7 +171,7 @@ export default function DetalheChamado() {
         .from('chamados')
         .update({
           id_atendente: user.id_usuario,
-          status_chamado: 'em_andamento',
+          status_chamado: 'EM_ANDAMENTO',
         })
         .eq('id_chamado', Number(id));
 
@@ -200,7 +206,7 @@ export default function DetalheChamado() {
     try {
       const { error } = await supabase
         .from('chamados')
-        .update({ status_chamado: novoStatus })
+        .update({ status_chamado: novoStatus.toUpperCase() })
         .eq('id_chamado', Number(id));
 
       if (error) throw error;
