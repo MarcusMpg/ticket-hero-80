@@ -7,6 +7,8 @@ import { Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CadastrarUsuarioDialog } from "@/components/admin/CadastrarUsuarioDialog";
+import { ListaUsuarios } from "@/components/admin/ListaUsuarios";
+import { useToast } from "@/hooks/use-toast";
 
 interface Filial {
   id_filial: number;
@@ -24,6 +26,7 @@ export default function PainelTI() {
   const [setores, setSetores] = useState<Setor[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
+  const { toast } = useToast();
 
   if (!user?.eh_atendente && !user?.eh_admin) {
     return <Navigate to="/abrir-chamado" replace />;
@@ -108,6 +111,45 @@ export default function PainelTI() {
     // Recarregar dados se necessário
   };
 
+  const handleAssumirChamado = async (chamadoId: number) => {
+    try {
+      const { error } = await supabase
+        .from('chamados')
+        .update({
+          id_atendente: user?.id_usuario,
+          status_chamado: 'EM_ANDAMENTO'
+        })
+        .eq('id_chamado', chamadoId);
+
+      if (error) throw error;
+
+      // Criar interação de atribuição
+      await supabase
+        .from('interacao')
+        .insert({
+          id_chamado: chamadoId,
+          id_usuario: user?.id_usuario,
+          tipo_interacao: 'atribuicao',
+          conteudo: `Chamado assumido por ${user?.nome}`
+        });
+
+      toast({
+        title: "Sucesso",
+        description: "Chamado assumido com sucesso!",
+      });
+
+      // Remover da lista de chamados na fila
+      setChamados(prev => prev.filter(c => c.id_chamado !== chamadoId));
+    } catch (error) {
+      console.error("Erro ao assumir chamado:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível assumir o chamado",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <MainLayout>
       <div className="space-y-6">
@@ -135,14 +177,20 @@ export default function PainelTI() {
             ) : (
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {chamados.map((chamado) => (
-                  <ChamadoCard key={chamado.id_chamado} chamado={chamado} showAtendente />
+                  <ChamadoCard 
+                    key={chamado.id_chamado} 
+                    chamado={chamado} 
+                    showAtendente 
+                    onAssumirChamado={handleAssumirChamado}
+                    isAtendente={user?.eh_atendente || user?.eh_admin}
+                  />
                 ))}
               </div>
             )}
           </TabsContent>
 
           {user?.eh_admin && (
-            <TabsContent value="usuarios" className="space-y-4">
+            <TabsContent value="usuarios" className="space-y-6">
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-xl font-semibold mb-2">Gerenciar Usuários</h2>
@@ -153,6 +201,11 @@ export default function PainelTI() {
                   setores={setores}
                   onUsuarioCriado={handleUsuarioCriado}
                 />
+              </div>
+
+              <div className="pt-6 border-t">
+                <h3 className="text-lg font-semibold mb-4">Usuários Cadastrados</h3>
+                <ListaUsuarios />
               </div>
             </TabsContent>
           )}

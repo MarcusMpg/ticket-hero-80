@@ -2,12 +2,14 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Chamado } from "@/types/chamado";
-import { Clock, User } from "lucide-react";
+import { Clock, User, CheckCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface ChamadoCardProps {
   chamado: Chamado;
   showAtendente?: boolean;
+  onAssumirChamado?: (chamadoId: number) => void;
+  isAtendente?: boolean;
 }
 
 const statusConfig = {
@@ -24,8 +26,20 @@ const prioridadeConfig = {
   alta: { label: "Alta", variant: "destructive" as const },
 };
 
-export const ChamadoCard = ({ chamado, showAtendente = false }: ChamadoCardProps) => {
+export const ChamadoCard = ({ 
+  chamado, 
+  showAtendente = false, 
+  onAssumirChamado,
+  isAtendente = false 
+}: ChamadoCardProps) => {
   const navigate = useNavigate();
+
+  const handleAssumirClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onAssumirChamado) {
+      onAssumirChamado(chamado.id_chamado);
+    }
+  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString("pt-BR", {
@@ -75,9 +89,27 @@ export const ChamadoCard = ({ chamado, showAtendente = false }: ChamadoCardProps
           </div>
         )}
 
-        <Button variant="outline" size="sm" className="w-full">
-          Ver Detalhes
-        </Button>
+        <div className="flex gap-2">
+          {isAtendente && !chamado.id_atendente && chamado.status === 'aberto' && (
+            <Button 
+              variant="default" 
+              size="sm" 
+              className="flex-1"
+              onClick={handleAssumirClick}
+            >
+              <CheckCircle className="h-4 w-4 mr-2" />
+              Assumir Chamado
+            </Button>
+          )}
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className={isAtendente && !chamado.id_atendente && chamado.status === 'aberto' ? 'flex-1' : 'w-full'}
+            onClick={() => navigate(`/chamado/${chamado.id_chamado}`)}
+          >
+            Ver Detalhes
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
