@@ -9,17 +9,29 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { Ticket } from "lucide-react";
+import { Ticket, Paperclip, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 export default function AbrirChamado() {
   const [titulo, setTitulo] = useState("");
   const [descricao, setDescricao] = useState("");
   const [prioridade, setPrioridade] = useState("baixa");
+  const [anexos, setAnexos] = useState<File[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const newFiles = Array.from(e.target.files);
+      setAnexos([...anexos, ...newFiles]);
+    }
+  };
+
+  const removeFile = (index: number) => {
+    setAnexos(anexos.filter((_, i) => i !== index));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,7 +40,8 @@ export default function AbrirChamado() {
     setIsLoading(true);
 
     try {
-      const { error } = await supabase
+      // Criar o chamado primeiro
+      const { data: chamadoData, error: chamadoError } = await supabase
         .from('chamados')
         .insert({
           titulo,
@@ -36,11 +49,39 @@ export default function AbrirChamado() {
           prioridade: prioridade.toUpperCase(),
           status_chamado: 'ABERTO',
           id_solicitante: user.id_usuario,
-          id_setor: 1, // ID do setor TI - pode ser configurável
+          id_setor: 1,
           id_filial: user.id_filial,
-        });
+        })
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (chamadoError) throw chamadoError;
+
+      // Upload dos anexos se houver
+      if (anexos.length > 0 && chamadoData) {
+        for (const arquivo of anexos) {
+          const fileExt = arquivo.name.split('.').pop();
+          const fileName = `${chamadoData.id_chamado}/${Date.now()}.${fileExt}`;
+          
+          const { error: uploadError } = await supabase.storage
+            .from('chamado-anexos')
+            .upload(fileName, arquivo);
+
+          if (uploadError) throw uploadError;
+
+          // Registrar anexo na tabela
+          const { error: anexoError } = await supabase
+            .from('chamadoanexo')
+            .insert({
+              id_chamado: chamadoData.id_chamado,
+              nome_original: arquivo.name,
+              mime_type: arquivo.type,
+              caminho_servidor: fileName,
+            });
+
+          if (anexoError) throw anexoError;
+        }
+      }
 
       toast({
         title: "Chamado aberto com sucesso!",
@@ -112,6 +153,39 @@ export default function AbrirChamado() {
                     <SelectItem value="ALTA">Alta</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="anexos">Anexos</Label>
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="anexos"
+                      type="file"
+                      onChange={handleFileChange}
+                      multiple
+                      className="flex-1"
+                    />
+                    <Paperclip className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                  {anexos.length > 0 && (
+                    <div className="space-y-2">
+                      {anexos.map((file, index) => (
+                        <div key={index} className="flex items-center justify-between p-2 bg-muted rounded-md">
+                          <span className="text-sm truncate flex-1">{file.name}</span>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeFile(index)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="flex gap-2 pt-4">
