@@ -255,6 +255,7 @@ export type Database = {
           data_cadastro: string | null
           email: string
           id_filial: number
+          id_setor: number | null
           id_usuario: number
           nome: string
           senha_hash: string
@@ -265,6 +266,7 @@ export type Database = {
           data_cadastro?: string | null
           email: string
           id_filial: number
+          id_setor?: number | null
           id_usuario?: number
           nome: string
           senha_hash: string
@@ -275,6 +277,7 @@ export type Database = {
           data_cadastro?: string | null
           email?: string
           id_filial?: number
+          id_setor?: number | null
           id_usuario?: number
           nome?: string
           senha_hash?: string
@@ -287,6 +290,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "filial"
             referencedColumns: ["id_filial"]
+          },
+          {
+            foreignKeyName: "usuario_id_setor_fkey"
+            columns: ["id_setor"]
+            isOneToOne: false
+            referencedRelation: "setor"
+            referencedColumns: ["id_setor"]
           },
         ]
       }
