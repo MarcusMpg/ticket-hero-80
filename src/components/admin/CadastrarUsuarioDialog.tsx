@@ -76,6 +76,11 @@ export const CadastrarUsuarioDialog = ({ filiais, setores, onUsuarioCriado }: Ca
 
       if (error) throw error;
 
+      // Verificar se a função retornou erro
+      if (data && !data.success) {
+        throw new Error(data.error || "Erro ao cadastrar usuário");
+      }
+
       toast({
         title: "Sucesso",
         description: "Usuário cadastrado com sucesso!",
