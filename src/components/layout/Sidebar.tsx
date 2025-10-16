@@ -16,7 +16,7 @@ export const Sidebar = () => {
     { to: "/meus-atendimentos", label: "Meus Atendimentos", icon: Users },
   ];
 
-  const links = user?.eh_atendente ? atendenteLinks : solicitanteLinks;
+  const links = (user?.eh_atendente || user?.eh_admin) ? atendenteLinks : solicitanteLinks;
 
   return (
     <aside className="fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 border-r bg-sidebar">
