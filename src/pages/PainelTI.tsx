@@ -7,6 +7,8 @@ import { Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CadastrarUsuarioDialog } from "@/components/admin/CadastrarUsuarioDialog";
+import { ListaUsuarios } from "@/components/admin/ListaUsuarios";
+import { useToast } from "@/hooks/use-toast";
 
 interface Filial {
   id_filial: number;
@@ -23,10 +25,8 @@ export default function PainelTI() {
   const [filiais, setFiliais] = useState<Filial[]>([]);
   const [setores, setSetores] = useState<Setor[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [filtroPrioridade, setFiltroPrioridade] = useState<string>("");
-  const [filtroStatus, setFiltroStatus] = useState<string>("");
-  const [filtroData, setFiltroData] = useState<string>("");
   const { user } = useAuth();
+  const { toast } = useToast();
 
   if (!user?.eh_atendente && !user?.eh_admin) {
     return <Navigate to="/abrir-chamado" replace />;
@@ -111,12 +111,44 @@ export default function PainelTI() {
     // Recarregar dados se necessário
   };
 
-  const chamadosFiltrados = chamados.filter((chamado) => {
-    const prioridadeMatch = filtroPrioridade ? chamado.prioridade === filtroPrioridade : true;
-    const statusMatch = filtroStatus ? chamado.status === filtroStatus : true;
-    const dataMatch = filtroData ? chamado.data_abertura?.slice(0, 10) === filtroData : true;
-    return prioridadeMatch && statusMatch && dataMatch;
-  });
+  const handleAssumirChamado = async (chamadoId: number) => {
+    try {
+      const { error } = await supabase
+        .from('chamados')
+        .update({
+          id_atendente: user?.id_usuario,
+          status_chamado: 'EM_ANDAMENTO'
+        })
+        .eq('id_chamado', chamadoId);
+
+      if (error) throw error;
+
+      // Criar interação de atribuição
+      await supabase
+        .from('interacao')
+        .insert({
+          id_chamado: chamadoId,
+          id_usuario: user?.id_usuario,
+          tipo_interacao: 'atribuicao',
+          conteudo: `Chamado assumido por ${user?.nome}`
+        });
+
+      toast({
+        title: "Sucesso",
+        description: "Chamado assumido com sucesso!",
+      });
+
+      // Remover da lista de chamados na fila
+      setChamados(prev => prev.filter(c => c.id_chamado !== chamadoId));
+    } catch (error) {
+      console.error("Erro ao assumir chamado:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível assumir o chamado",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <MainLayout>
@@ -138,51 +170,27 @@ export default function PainelTI() {
               <p className="text-sm text-muted-foreground">Chamados abertos sem atendente</p>
             </div>
 
-            {/* Filtros */}
-            <div className="flex gap-4 mb-4">
-              <select
-                value={filtroPrioridade}
-                onChange={e => setFiltroPrioridade(e.target.value)}
-                className="border rounded px-2 py-1"
-              >
-                <option value="">Todas Prioridades</option>
-                <option value="baixa">Baixa</option>
-                <option value="media">Média</option>
-                <option value="alta">Alta</option>
-              </select>
-              <select
-                value={filtroStatus}
-                onChange={e => setFiltroStatus(e.target.value)}
-                className="border rounded px-2 py-1"
-              >
-                <option value="">Todos Status</option>
-                <option value="aberto">Aberto</option>
-                <option value="em atendimento">Em Atendimento</option>
-                <option value="finalizado">Finalizado</option>
-              </select>
-              <input
-                type="date"
-                value={filtroData}
-                onChange={e => setFiltroData(e.target.value)}
-                className="border rounded px-2 py-1"
-              />
-            </div>
-
-            {chamadosFiltrados.length === 0 ? (
+            {chamados.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <p className="text-lg text-muted-foreground">Não há chamados na fila no momento</p>
               </div>
             ) : (
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {chamadosFiltrados.map((chamado) => (
-                  <ChamadoCard key={chamado.id_chamado} chamado={chamado} showAtendente />
+                {chamados.map((chamado) => (
+                  <ChamadoCard 
+                    key={chamado.id_chamado} 
+                    chamado={chamado} 
+                    showAtendente 
+                    onAssumirChamado={handleAssumirChamado}
+                    isAtendente={user?.eh_atendente || user?.eh_admin}
+                  />
                 ))}
               </div>
             )}
           </TabsContent>
 
           {user?.eh_admin && (
-            <TabsContent value="usuarios" className="space-y-4">
+            <TabsContent value="usuarios" className="space-y-6">
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-xl font-semibold mb-2">Gerenciar Usuários</h2>
@@ -193,6 +201,11 @@ export default function PainelTI() {
                   setores={setores}
                   onUsuarioCriado={handleUsuarioCriado}
                 />
+              </div>
+
+              <div className="pt-6 border-t">
+                <h3 className="text-lg font-semibold mb-4">Usuários Cadastrados</h3>
+                <ListaUsuarios />
               </div>
             </TabsContent>
           )}
