@@ -35,7 +35,9 @@ export default function PainelTI() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Buscar chamados
+        console.log('Buscando chamados para usuário:', user?.id_usuario, 'tipo:', user?.tipo_usuario);
+        
+        // Buscar chamados - sem filtros, a RLS vai controlar o acesso
         const { data: chamadosData, error: chamadosError } = await supabase
           .from('chamados')
           .select(`
@@ -44,6 +46,8 @@ export default function PainelTI() {
             atendente:usuario!chamados_id_atendente_fkey(nome)
           `)
           .order('data_abertura', { ascending: false });
+        
+        console.log('Chamados retornados:', chamadosData?.length, chamadosData);
 
         if (chamadosError) throw chamadosError;
 
