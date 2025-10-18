@@ -11,10 +11,6 @@ export default function MeusAtendimentos() {
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
 
-  if (!user?.eh_atendente) {
-    return <Navigate to="/abrir-chamado" replace />;
-  }
-
   useEffect(() => {
     const fetchChamados = async () => {
       if (!user) return;
@@ -57,6 +53,10 @@ export default function MeusAtendimentos() {
 
     fetchChamados();
   }, [user]);
+
+  if (!user?.eh_atendente) {
+    return <Navigate to="/abrir-chamado" replace />;
+  }
 
   if (isLoading) {
     return (

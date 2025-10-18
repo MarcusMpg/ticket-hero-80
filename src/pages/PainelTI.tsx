@@ -43,8 +43,6 @@ export default function PainelTI() {
             solicitante:usuario!chamados_id_solicitante_fkey(nome),
             atendente:usuario!chamados_id_atendente_fkey(nome)
           `)
-          .is('id_atendente', null)
-          .eq('status_chamado', 'ABERTO')
           .order('data_abertura', { ascending: false });
 
         if (chamadosError) throw chamadosError;
@@ -166,8 +164,8 @@ export default function PainelTI() {
 
           <TabsContent value="chamados" className="space-y-4">
             <div>
-              <h2 className="text-xl font-semibold mb-2">Chamados Aguardando Atribuição</h2>
-              <p className="text-sm text-muted-foreground">Chamados abertos sem atendente</p>
+              <h2 className="text-xl font-semibold mb-2">Fila de Chamados</h2>
+              <p className="text-sm text-muted-foreground">Todos os chamados do sistema</p>
             </div>
 
             {chamados.length === 0 ? (
