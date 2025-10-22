@@ -12,7 +12,7 @@ export const Sidebar = () => {
   ];
 
   const atendenteLinks = [
-    { to: "/painel-ti", label: "Fila de Chamados", icon: Home },
+    { to: "/painel-ti", label: "Painel TI", icon: Home },
     { to: "/meus-atendimentos", label: "Meus Atendimentos", icon: Users },
   ];
 

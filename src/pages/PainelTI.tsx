@@ -27,6 +27,9 @@ export default function PainelTI() {
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
+  const [filtroPrioridade, setFiltroPrioridade] = useState<string>("");
+  const [filtroStatus, setFiltroStatus] = useState<string>("");
+  const [filtroData, setFiltroData] = useState<string>("");
 
   if (!user?.eh_atendente && !user?.eh_admin) {
     return <Navigate to="/abrir-chamado" replace />;
@@ -150,6 +153,13 @@ export default function PainelTI() {
     }
   };
 
+  const chamadosFiltrados = chamados.filter((chamado) => {
+    const prioridadeMatch = filtroPrioridade ? chamado.prioridade === filtroPrioridade : true;
+    const statusMatch = filtroStatus ? chamado.status === filtroStatus : true;
+    const dataMatch = filtroData ? chamado.data_abertura?.slice(0, 10) === filtroData : true;
+    return prioridadeMatch && statusMatch && dataMatch;
+  });
+
   return (
     <MainLayout>
       <div className="space-y-6">
@@ -170,20 +180,44 @@ export default function PainelTI() {
               <p className="text-sm text-muted-foreground">Chamados abertos sem atendente</p>
             </div>
 
-            {chamados.length === 0 ? (
+            {/* Filtros */}
+            <div className="flex gap-4 mb-4">
+              <select
+                value={filtroPrioridade}
+                onChange={e => setFiltroPrioridade(e.target.value)}
+                className="border rounded px-2 py-1"
+              >
+                <option value="">Todas Prioridades</option>
+                <option value="baixa">Baixa</option>
+                <option value="media">Média</option>
+                <option value="alta">Alta</option>
+              </select>
+              <select
+                value={filtroStatus}
+                onChange={e => setFiltroStatus(e.target.value)}
+                className="border rounded px-2 py-1"
+              >
+                <option value="">Todos Status</option>
+                <option value="aberto">Aberto</option>
+                <option value="em atendimento">Em Atendimento</option>
+                <option value="finalizado">Finalizado</option>
+              </select>
+              <input
+                type="date"
+                value={filtroData}
+                onChange={e => setFiltroData(e.target.value)}
+                className="border rounded px-2 py-1"
+              />
+            </div>
+
+            {chamadosFiltrados.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <p className="text-lg text-muted-foreground">Não há chamados na fila no momento</p>
               </div>
             ) : (
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {chamados.map((chamado) => (
-                  <ChamadoCard 
-                    key={chamado.id_chamado} 
-                    chamado={chamado} 
-                    showAtendente 
-                    onAssumirChamado={handleAssumirChamado}
-                    isAtendente={user?.eh_atendente || user?.eh_admin}
-                  />
+                {chamadosFiltrados.map((chamado) => (
+                  <ChamadoCard key={chamado.id_chamado} chamado={chamado} showAtendente />
                 ))}
               </div>
             )}
