@@ -237,7 +237,7 @@ export default function PainelTI() {
 
               <div className="pt-6 border-t">
                 <h3 className="text-lg font-semibold mb-4">Usuários Cadastrados</h3>
-                <ListaUsuarios />
+                <ListaUsuarios filiais={filiais} setores={setores} />
               </div>
             </TabsContent>
           )}
