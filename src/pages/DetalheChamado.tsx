@@ -6,10 +6,11 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { Chamado, Interacao } from "@/types/chamado";
-import { ArrowLeft, User, Clock, MessageSquare } from "lucide-react";
+import { ArrowLeft, User, Clock, MessageSquare, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 const statusConfig = {
@@ -231,6 +232,31 @@ export default function DetalheChamado() {
     }
   };
 
+  const handleDeletarChamado = async () => {
+    try {
+      const { error } = await supabase
+        .from('chamados')
+        .delete()
+        .eq('id_chamado', Number(id));
+
+      if (error) throw error;
+
+      toast({
+        title: "Chamado deletado",
+        description: "O chamado foi removido com sucesso.",
+      });
+
+      // Redirecionar para a lista de chamados
+      navigate(ehAtendente ? '/painel-ti' : '/meus-chamados');
+    } catch (error: any) {
+      toast({
+        title: "Erro",
+        description: error.message || "Não foi possível deletar o chamado.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString("pt-BR", {
       day: "2-digit",
@@ -270,18 +296,46 @@ export default function DetalheChamado() {
 
   const ehAtendente = user?.eh_atendente || user?.eh_admin;
   const ehSolicitante = user?.id_usuario === chamado.id_solicitante;
+  const podeDeletear = user?.eh_admin || (ehSolicitante && chamado.status === 'aberto');
 
   return (
     <MainLayout>
       <div className="space-y-6">
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold">{chamado.titulo}</h1>
-            <p className="text-sm text-muted-foreground">Chamado #{chamado.id_chamado}</p>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold">{chamado.titulo}</h1>
+              <p className="text-sm text-muted-foreground">Chamado #{chamado.id_chamado}</p>
+            </div>
           </div>
+          
+          {podeDeletear && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" size="sm">
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Deletar Chamado
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Tem certeza que deseja deletar este chamado? Esta ação não pode ser desfeita.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDeletarChamado}>
+                    Deletar
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
         </div>
 
         <div className="grid gap-6 lg:grid-cols-3">

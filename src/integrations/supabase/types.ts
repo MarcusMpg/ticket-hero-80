@@ -305,14 +305,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      get_current_user_id_usuario: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
-      is_current_user_atendente: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
+      get_current_user_id_usuario: { Args: never; Returns: number }
+      is_current_user_atendente: { Args: never; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
