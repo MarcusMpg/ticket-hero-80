@@ -268,7 +268,7 @@ export default function DetalheChamado() {
     );
   }
 
-  const ehAtendente = user?.eh_atendente;
+  const ehAtendente = user?.eh_atendente || user?.eh_admin;
   const ehSolicitante = user?.id_usuario === chamado.id_solicitante;
 
   return (
