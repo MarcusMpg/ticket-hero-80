@@ -23,8 +23,8 @@ export default function MeusChamados() {
           .from('chamados')
           .select(`
             *,
-            solicitante:usuario!chamados_id_solicitante_fkey(nome),
-            atendente:usuario!chamados_id_atendente_fkey(nome)
+            solicitante:usuario!fk_chamados_id_solicitante_cascade(nome),
+            atendente:usuario!fk_chamados_id_atendente_setnull(nome)
           `)
           .eq('id_solicitante', user.id_usuario)
           .order('data_abertura', { ascending: false });
