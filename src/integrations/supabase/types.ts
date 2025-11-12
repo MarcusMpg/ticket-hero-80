@@ -41,7 +41,7 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_chamado_anexo"
+            foreignKeyName: "fk_chamadoanexo_chamado"
             columns: ["id_chamado"]
             isOneToOne: false
             referencedRelation: "chamados"
@@ -91,13 +91,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "chamados_id_atendente_fkey"
-            columns: ["id_atendente"]
-            isOneToOne: false
-            referencedRelation: "usuario"
-            referencedColumns: ["id_usuario"]
-          },
-          {
             foreignKeyName: "chamados_id_filial_fkey"
             columns: ["id_filial"]
             isOneToOne: false
@@ -112,20 +105,6 @@ export type Database = {
             referencedColumns: ["id_setor"]
           },
           {
-            foreignKeyName: "chamados_id_solicitante_fkey"
-            columns: ["id_solicitante"]
-            isOneToOne: false
-            referencedRelation: "usuario"
-            referencedColumns: ["id_usuario"]
-          },
-          {
-            foreignKeyName: "fk_chamados_atendente"
-            columns: ["id_atendente"]
-            isOneToOne: false
-            referencedRelation: "usuario"
-            referencedColumns: ["id_usuario"]
-          },
-          {
             foreignKeyName: "fk_chamados_filial"
             columns: ["id_filial"]
             isOneToOne: false
@@ -133,18 +112,25 @@ export type Database = {
             referencedColumns: ["id_filial"]
           },
           {
+            foreignKeyName: "fk_chamados_id_atendente_setnull"
+            columns: ["id_atendente"]
+            isOneToOne: false
+            referencedRelation: "usuario"
+            referencedColumns: ["id_usuario"]
+          },
+          {
+            foreignKeyName: "fk_chamados_id_solicitante_cascade"
+            columns: ["id_solicitante"]
+            isOneToOne: false
+            referencedRelation: "usuario"
+            referencedColumns: ["id_usuario"]
+          },
+          {
             foreignKeyName: "fk_chamados_setor"
             columns: ["id_setor"]
             isOneToOne: false
             referencedRelation: "setor"
             referencedColumns: ["id_setor"]
-          },
-          {
-            foreignKeyName: "fk_chamados_solicitante"
-            columns: ["id_solicitante"]
-            isOneToOne: false
-            referencedRelation: "usuario"
-            referencedColumns: ["id_usuario"]
           },
         ]
       }
