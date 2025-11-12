@@ -150,12 +150,32 @@ export const ListaUsuarios = ({ filiais = [], setores = [] }: ListaUsuariosProps
     }
 
     try {
-      const { error } = await supabase
-        .from('usuario')
-        .update({ senha_hash: novaSenha })
-        .eq('id_usuario', redefinindoSenha.id_usuario);
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        throw new Error('Não autenticado');
+      }
 
-      if (error) throw error;
+      const response = await fetch(
+        `https://ojrqxpaiwksguurfzunh.supabase.co/functions/v1/redefinir-senha`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            id_usuario: redefinindoSenha.id_usuario,
+            nova_senha: novaSenha,
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Erro ao redefinir senha');
+      }
 
       toast({
         title: "Sucesso",
