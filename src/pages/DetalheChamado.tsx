@@ -10,7 +10,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { Chamado, Interacao } from "@/types/chamado";
-import { ArrowLeft, User, Clock, MessageSquare, Trash2 } from "lucide-react";
+import { ArrowLeft, User, Clock, MessageSquare, Trash2, Paperclip, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 const statusConfig = {
@@ -34,6 +34,7 @@ export default function DetalheChamado() {
   const { toast } = useToast();
   const [chamado, setChamado] = useState<Chamado | null>(null);
   const [interacoes, setInteracoes] = useState<Interacao[]>([]);
+  const [anexos, setAnexos] = useState<any[]>([]);
   const [novoComentario, setNovoComentario] = useState("");
   const [novoStatus, setNovoStatus] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -79,6 +80,16 @@ export default function DetalheChamado() {
 
         setChamado(chamadoMapeado);
         setNovoStatus(chamadoMapeado.status);
+
+        // Fetch anexos
+        const { data: anexosData, error: anexosError } = await supabase
+          .from('chamadoanexo')
+          .select('*')
+          .eq('id_chamado', Number(id))
+          .order('data_upload', { ascending: true });
+
+        if (anexosError) throw anexosError;
+        setAnexos(anexosData || []);
 
         // Fetch interacoes
         const { data: interacoesData, error: interacoesError } = await supabase
@@ -257,6 +268,31 @@ export default function DetalheChamado() {
     }
   };
 
+  const handleDownloadAnexo = async (anexo: any) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('chamado-anexos')
+        .download(anexo.caminho_servidor);
+
+      if (error) throw error;
+
+      const url = URL.createObjectURL(data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = anexo.nome_original;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error: any) {
+      toast({
+        title: "Erro",
+        description: error.message || "Não foi possível baixar o arquivo.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString("pt-BR", {
       day: "2-digit",
@@ -348,6 +384,39 @@ export default function DetalheChamado() {
                 <p className="text-foreground whitespace-pre-wrap">{chamado.descricao}</p>
               </CardContent>
             </Card>
+
+            {anexos.length > 0 && (
+              <Card className="shadow-card">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Paperclip className="h-5 w-5" />
+                    Anexos ({anexos.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {anexos.map((anexo) => (
+                      <div
+                        key={anexo.id_anexo}
+                        className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent transition-colors"
+                      >
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <Paperclip className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                          <span className="text-sm truncate">{anexo.nome_original}</span>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDownloadAnexo(anexo)}
+                        >
+                          <Download className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             <Card className="shadow-card">
               <CardHeader>
@@ -457,11 +526,20 @@ export default function DetalheChamado() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="aberto">Aberto</SelectItem>
-                        <SelectItem value="em_andamento">Em Andamento</SelectItem>
-                        <SelectItem value="aguardando">Aguardando</SelectItem>
-                        <SelectItem value="resolvido">Resolvido</SelectItem>
-                        <SelectItem value="fechado">Fechado</SelectItem>
+                        {novoStatus === "resolvido" || chamado.status === "resolvido" ? (
+                          <>
+                            <SelectItem value="resolvido">Resolvido</SelectItem>
+                            <SelectItem value="fechado">Fechado</SelectItem>
+                          </>
+                        ) : (
+                          <>
+                            <SelectItem value="aberto">Aberto</SelectItem>
+                            <SelectItem value="em_andamento">Em Andamento</SelectItem>
+                            <SelectItem value="aguardando">Aguardando</SelectItem>
+                            <SelectItem value="resolvido">Resolvido</SelectItem>
+                            <SelectItem value="fechado">Fechado</SelectItem>
+                          </>
+                        )}
                       </SelectContent>
                     </Select>
                     <Button
