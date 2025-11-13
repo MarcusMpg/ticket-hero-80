@@ -16,7 +16,7 @@ const statusConfig = {
   aberto: { label: "Aberto", variant: "info" as const },
   em_andamento: { label: "Em Andamento", variant: "warning" as const },
   aguardando: { label: "Aguardando", variant: "secondary" as const },
-  resolvido: { label: "Resolvido", variant: "success" as const },
+  concluido: { label: "Concluído", variant: "success" as const },
   fechado: { label: "Fechado", variant: "default" as const },
 };
 

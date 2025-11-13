@@ -2,7 +2,7 @@ export interface Chamado {
   id_chamado: number;
   titulo: string;
   descricao: string;
-  status: 'aberto' | 'em_andamento' | 'aguardando' | 'resolvido' | 'fechado';
+  status: 'aberto' | 'em_andamento' | 'aguardando' | 'concluido' | 'fechado';
   prioridade: 'baixa' | 'media' | 'alta';
   id_solicitante: number;
   id_atendente: number | null;
