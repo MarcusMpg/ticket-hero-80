@@ -37,6 +37,7 @@ export default function DetalheChamado() {
   const [anexos, setAnexos] = useState<any[]>([]);
   const [novoComentario, setNovoComentario] = useState("");
   const [novoStatus, setNovoStatus] = useState("");
+  const [justificativa, setJustificativa] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -215,6 +216,16 @@ export default function DetalheChamado() {
   const handleMudarStatus = async () => {
     if (novoStatus === chamado?.status) return;
 
+    // Verificar se é aguardando e se tem justificativa
+    if (novoStatus === 'aguardando' && !justificativa.trim()) {
+      toast({
+        title: "Justificativa obrigatória",
+        description: "Você deve fornecer uma justificativa ao colocar o chamado em 'Aguardando'.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('chamados')
@@ -222,6 +233,38 @@ export default function DetalheChamado() {
         .eq('id_chamado', Number(id));
 
       if (error) throw error;
+
+      // Se for aguardando, registrar a justificativa como interação
+      if (novoStatus === 'aguardando' && user) {
+        const { data: interacaoData, error: interacaoError } = await supabase
+          .from('interacao')
+          .insert({
+            id_chamado: Number(id),
+            id_usuario: user.id_usuario,
+            tipo_interacao: 'MUDANCA_STATUS',
+            conteudo: `Status alterado para AGUARDANDO. Justificativa: ${justificativa}`,
+          })
+          .select(`
+            *,
+            usuario(nome)
+          `)
+          .single();
+
+        if (interacaoError) throw interacaoError;
+
+        const novaInteracao: Interacao = {
+          id_interacao: interacaoData.id_interacao,
+          id_chamado: interacaoData.id_chamado,
+          id_funcionario: interacaoData.id_usuario,
+          tipo_interacao: interacaoData.tipo_interacao as any,
+          mensagem: interacaoData.conteudo,
+          data_interacao: interacaoData.data_interacao,
+          funcionario_nome: (interacaoData as any).usuario?.nome,
+        };
+
+        setInteracoes([...interacoes, novaInteracao]);
+        setJustificativa("");
+      }
 
       if (chamado) {
         setChamado({
@@ -542,6 +585,21 @@ export default function DetalheChamado() {
                         )}
                       </SelectContent>
                     </Select>
+                    
+                    {novoStatus === 'aguardando' && (
+                      <div className="space-y-2">
+                        <label className="text-sm text-muted-foreground">
+                          Justificativa (obrigatória)
+                        </label>
+                        <Textarea
+                          placeholder="Descreva o motivo por estar aguardando..."
+                          value={justificativa}
+                          onChange={(e) => setJustificativa(e.target.value)}
+                          rows={3}
+                        />
+                      </div>
+                    )}
+                    
                     <Button
                       variant="outline"
                       className="w-full"
