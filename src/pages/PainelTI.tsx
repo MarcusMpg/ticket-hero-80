@@ -197,8 +197,10 @@ export default function PainelTI() {
               >
                 <option value="">Todos Status</option>
                 <option value="aberto">Aberto</option>
-                <option value="em atendimento">Em Atendimento</option>
-                <option value="finalizado">Finalizado</option>
+                <option value="em_andamento">Em Andamento</option>
+                <option value="aguardando">Aguardando</option>
+                <option value="concluido">Concluído</option>
+                <option value="fechado">Fechado</option>
               </select>
               <input
                 type="date"
