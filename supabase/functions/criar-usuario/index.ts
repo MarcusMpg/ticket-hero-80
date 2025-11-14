@@ -24,33 +24,139 @@ serve(async (req) => {
     );
 
     // Verificar autenticação do requisitante
-    const authHeader = req.headers.get('Authorization')!;
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      console.error('Authorization header não encontrado');
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Authorization header não encontrado'
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 401,
+        }
+      );
+    }
+
     const token = authHeader.replace('Bearer ', '');
     const { data: { user: requestingUser }, error: authError } = await supabaseAdmin.auth.getUser(token);
 
-    if (authError || !requestingUser) {
-      throw new Error('Não autorizado');
+    if (authError) {
+      console.error('Erro ao verificar autenticação:', authError);
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Erro ao verificar autenticação'
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 401,
+        }
+      );
     }
 
+    if (!requestingUser) {
+      console.error('Usuário não encontrado');
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Usuário não autenticado'
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 401,
+        }
+      );
+    }
+
+    console.log('Usuário autenticado:', requestingUser.id);
+
     // Verificar se o usuário requisitante é admin
-    const { data: profile } = await supabaseAdmin
+    const { data: profile, error: profileCheckError } = await supabaseAdmin
       .from('profiles')
       .select('id_usuario')
       .eq('id', requestingUser.id)
       .single();
 
-    if (!profile?.id_usuario) {
-      throw new Error('Perfil não encontrado');
+    if (profileCheckError) {
+      console.error('Erro ao buscar profile:', profileCheckError);
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Erro ao buscar perfil do usuário'
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400,
+        }
+      );
     }
 
-    const { data: usuario } = await supabaseAdmin
+    if (!profile?.id_usuario) {
+      console.error('Profile sem id_usuario:', profile);
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Perfil não vinculado a um usuário'
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400,
+        }
+      );
+    }
+
+    console.log('Profile encontrado, id_usuario:', profile.id_usuario);
+
+    const { data: usuario, error: usuarioCheckError } = await supabaseAdmin
       .from('usuario')
       .select('tipo_usuario')
       .eq('id_usuario', profile.id_usuario)
       .single();
 
-    if (!usuario || usuario.tipo_usuario !== 'ADMIN') {
-      throw new Error('Apenas administradores podem cadastrar usuários');
+    if (usuarioCheckError) {
+      console.error('Erro ao buscar usuário:', usuarioCheckError);
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Erro ao buscar dados do usuário'
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400,
+        }
+      );
+    }
+
+    if (!usuario) {
+      console.error('Usuário não encontrado na tabela usuario');
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Usuário não encontrado'
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400,
+        }
+      );
+    }
+
+    console.log('Usuário encontrado, tipo:', usuario.tipo_usuario);
+
+    if (usuario.tipo_usuario !== 'ADMIN') {
+      console.error('Usuário não é admin:', usuario.tipo_usuario);
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Apenas administradores podem cadastrar usuários'
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 403,
+        }
+      );
     }
 
     // Dados do novo usuário
@@ -58,12 +164,32 @@ serve(async (req) => {
 
     // Validar dados
     if (!email || !password || !nome || !tipo_usuario || !id_filial || !id_setor) {
-      throw new Error('Dados incompletos');
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Dados incompletos'
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400,
+        }
+      );
     }
 
     if (password.length < 6) {
-      throw new Error('A senha deve ter pelo menos 6 caracteres');
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'A senha deve ter pelo menos 6 caracteres'
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400,
+        }
+      );
     }
+
+    console.log('Criando usuário no Auth com email:', email);
 
     // Criar usuário no Auth
     const { data: authData, error: createAuthError } = await supabaseAdmin.auth.admin.createUser({
@@ -101,8 +227,11 @@ serve(async (req) => {
       );
     }
 
+    console.log('Usuário criado no Auth, id:', authData.user.id);
+    console.log('Criando registro na tabela usuario');
+
     // Criar registro na tabela usuario
-    const { data: usuarioData, error: usuarioError } = await supabaseAdmin
+    const { data: usuarioData, error: createUsuarioError } = await supabaseAdmin
       .from('usuario')
       .insert({
         email,
@@ -116,24 +245,64 @@ serve(async (req) => {
       .select('id_usuario')
       .single();
 
-    if (usuarioError) {
+    if (createUsuarioError) {
+      console.error('Erro ao criar registro de usuário:', createUsuarioError);
       // Se falhar, remover o usuário do auth
       await supabaseAdmin.auth.admin.deleteUser(authData.user.id);
-      throw new Error(`Erro ao criar registro de usuário: ${usuarioError.message}`);
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: `Erro ao criar registro de usuário: ${createUsuarioError.message}`
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400,
+        }
+      );
     }
 
+    if (!usuarioData) {
+      console.error('Falha ao criar usuário: usuarioData é null');
+      await supabaseAdmin.auth.admin.deleteUser(authData.user.id);
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Falha ao criar registro de usuário'
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400,
+        }
+      );
+    }
+
+    console.log('Registro criado na tabela usuario, id_usuario:', usuarioData.id_usuario);
+    console.log('Vinculando profile ao usuario');
+
     // Vincular profile ao usuario
-    const { error: profileError } = await supabaseAdmin
+    const { error: updateProfileError } = await supabaseAdmin
       .from('profiles')
       .update({ id_usuario: usuarioData.id_usuario })
       .eq('id', authData.user.id);
 
-    if (profileError) {
+    if (updateProfileError) {
+      console.error('Erro ao vincular perfil:', updateProfileError);
       // Se falhar, limpar registros
       await supabaseAdmin.auth.admin.deleteUser(authData.user.id);
       await supabaseAdmin.from('usuario').delete().eq('id_usuario', usuarioData.id_usuario);
-      throw new Error(`Erro ao vincular perfil: ${profileError.message}`);
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: `Erro ao vincular perfil: ${updateProfileError.message}`
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400,
+        }
+      );
     }
+
+    console.log('Perfil vinculado com sucesso');
 
     return new Response(
       JSON.stringify({
@@ -152,7 +321,7 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Erro:', error);
+    console.error('Erro geral:', error);
     const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
     return new Response(
       JSON.stringify({
