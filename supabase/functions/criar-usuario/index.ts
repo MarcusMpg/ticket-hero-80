@@ -73,11 +73,32 @@ serve(async (req) => {
     });
 
     if (createAuthError) {
-      throw new Error(`Erro ao criar usuário: ${createAuthError.message}`);
+      console.error('Erro ao criar usuário no Auth:', createAuthError);
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: createAuthError.message === 'A user with this email address has already been registered' 
+            ? 'Este email já está cadastrado no sistema.' 
+            : `Erro ao criar usuário: ${createAuthError.message}`
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400,
+        }
+      );
     }
 
     if (!authData.user) {
-      throw new Error('Falha ao criar usuário');
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Falha ao criar usuário'
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400,
+        }
+      );
     }
 
     // Criar registro na tabela usuario
