@@ -103,9 +103,11 @@ export default function AbrirChamado() {
   return (
     <MainLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold">Novo Chamado</h1>
-          <p className="text-muted-foreground">Descreva seu problema ou solicitação</p>
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold">Novo Chamado</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">Descreva seu problema ou solicitação</p>
+          </div>
         </div>
 
         <Card className="shadow-card">

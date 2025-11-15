@@ -162,14 +162,14 @@ export default function PainelTI() {
     <MainLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold">Painel TI</h1>
-          <p className="text-muted-foreground">Gerenciamento de chamados e usuários</p>
+          <h1 className="text-2xl sm:text-3xl font-bold">Painel TI</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Gerenciamento de chamados e usuários</p>
         </div>
 
         <Tabs defaultValue="chamados" className="w-full">
-          <TabsList>
-            <TabsTrigger value="chamados">Fila de Chamados</TabsTrigger>
-            {user?.eh_admin && <TabsTrigger value="usuarios">Cadastrar Usuários</TabsTrigger>}
+          <TabsList className="w-full sm:w-auto">
+            <TabsTrigger value="chamados" className="flex-1 sm:flex-none">Fila de Chamados</TabsTrigger>
+            {user?.eh_admin && <TabsTrigger value="usuarios" className="flex-1 sm:flex-none">Usuários</TabsTrigger>}
           </TabsList>
 
           <TabsContent value="chamados" className="space-y-4">
@@ -179,11 +179,11 @@ export default function PainelTI() {
             </div>
 
             {/* Filtros */}
-            <div className="flex gap-4 mb-4">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mb-4">
               <select
                 value={filtroPrioridade}
                 onChange={e => setFiltroPrioridade(e.target.value)}
-                className="border rounded px-2 py-1"
+                className="border border-border rounded-md px-3 py-2 bg-background text-sm"
               >
                 <option value="">Todas Prioridades</option>
                 <option value="baixa">Baixa</option>
@@ -193,7 +193,7 @@ export default function PainelTI() {
               <select
                 value={filtroStatus}
                 onChange={e => setFiltroStatus(e.target.value)}
-                className="border rounded px-2 py-1"
+                className="border border-border rounded-md px-3 py-2 bg-background text-sm"
               >
                 <option value="">Todos Status</option>
                 <option value="aberto">Aberto</option>
@@ -206,7 +206,7 @@ export default function PainelTI() {
                 type="date"
                 value={filtroData}
                 onChange={e => setFiltroData(e.target.value)}
-                className="border rounded px-2 py-1"
+                className="border border-border rounded-md px-3 py-2 bg-background text-sm"
               />
             </div>
 
@@ -215,9 +215,15 @@ export default function PainelTI() {
                 <p className="text-lg text-muted-foreground">Não há chamados na fila no momento</p>
               </div>
             ) : (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {chamadosFiltrados.map((chamado) => (
-                  <ChamadoCard key={chamado.id_chamado} chamado={chamado} showAtendente />
+                  <ChamadoCard 
+                    key={chamado.id_chamado} 
+                    chamado={chamado} 
+                    showAtendente 
+                    onAssumirChamado={handleAssumirChamado}
+                    isAtendente={user?.eh_atendente || user?.eh_admin}
+                  />
                 ))}
               </div>
             )}
@@ -225,7 +231,7 @@ export default function PainelTI() {
 
           {user?.eh_admin && (
             <TabsContent value="usuarios" className="space-y-6">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
                   <h2 className="text-xl font-semibold mb-2">Gerenciar Usuários</h2>
                   <p className="text-sm text-muted-foreground">Cadastre novos usuários no sistema</p>

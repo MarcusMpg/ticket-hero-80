@@ -122,9 +122,9 @@ export const CadastrarUsuarioDialog = ({ filiais, setores, onUsuarioCriado }: Ca
           Cadastrar Usuário
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Cadastrar Novo Usuário</DialogTitle>
+          <DialogTitle className="text-lg sm:text-xl">Cadastrar Novo Usuário</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
@@ -218,11 +218,11 @@ export const CadastrarUsuarioDialog = ({ filiais, setores, onUsuarioCriado }: Ca
             </Select>
           </div>
 
-          <div className="flex gap-2 justify-end pt-4">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+          <div className="flex flex-col sm:flex-row gap-2 justify-end pt-4">
+            <Button type="button" variant="outline" onClick={() => setOpen(false)} className="w-full sm:w-auto">
               Cancelar
             </Button>
-            <Button type="submit" disabled={isLoading}>
+            <Button type="submit" disabled={isLoading} className="w-full sm:w-auto">
               {isLoading ? "Cadastrando..." : "Cadastrar"}
             </Button>
           </div>

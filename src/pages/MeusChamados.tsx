@@ -81,12 +81,12 @@ export default function MeusChamados() {
   return (
     <MainLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold">Meus Chamados</h1>
-            <p className="text-muted-foreground">Acompanhe o status dos seus chamados</p>
+            <h1 className="text-2xl sm:text-3xl font-bold">Meus Chamados</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">Acompanhe o status dos seus chamados</p>
           </div>
-          <Button onClick={() => navigate("/abrir-chamado")}>
+          <Button onClick={() => navigate("/abrir-chamado")} className="w-full sm:w-auto">
             <Plus className="mr-2 h-4 w-4" />
             Novo Chamado
           </Button>
@@ -101,7 +101,7 @@ export default function MeusChamados() {
             </Button>
           </div>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {chamados.map((chamado) => (
               <ChamadoCard key={chamado.id_chamado} chamado={chamado} />
             ))}

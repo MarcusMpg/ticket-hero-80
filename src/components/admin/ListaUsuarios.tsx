@@ -248,26 +248,26 @@ export const ListaUsuarios = ({ filiais = [], setores = [] }: ListaUsuariosProps
   return (
     <>
       <div className="space-y-4">
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {usuarios.map((usuario) => (
             <Card key={usuario.id_usuario} className="shadow-card hover:shadow-elevated transition-shadow">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <User className="h-5 w-5 text-muted-foreground" />
-                    <CardTitle className="text-base">{usuario.nome}</CardTitle>
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <User className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                    <CardTitle className="text-sm sm:text-base truncate">{usuario.nome}</CardTitle>
                   </div>
                   <Badge 
                     variant={getTipoVariant(usuario.tipo_usuario)}
-                    className="shrink-0"
+                    className="shrink-0 text-xs"
                   >
                     {getTipoLabel(usuario.tipo_usuario)}
                   </Badge>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-3 text-sm">
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Mail className="h-4 w-4" />
+              <CardContent className="space-y-3 text-xs sm:text-sm">
+                <div className="flex items-center gap-2 text-muted-foreground min-w-0">
+                  <Mail className="h-4 w-4 flex-shrink-0" />
                   <span className="truncate">{usuario.email}</span>
                 </div>
                 
@@ -292,11 +292,12 @@ export const ListaUsuarios = ({ filiais = [], setores = [] }: ListaUsuariosProps
                 </div>
 
                 {ehAdmin && (
-                  <div className="flex gap-2 pt-2 border-t">
+                  <div className="grid grid-cols-3 gap-2 pt-2 border-t">
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={() => handleEditarClick(usuario)}
+                      className="w-full"
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
@@ -307,21 +308,22 @@ export const ListaUsuarios = ({ filiais = [], setores = [] }: ListaUsuariosProps
                           size="sm"
                           variant="outline"
                           onClick={() => setRedefinindoSenha(usuario)}
+                          className="w-full"
                         >
                           <KeyRound className="h-4 w-4" />
                         </Button>
                       </DialogTrigger>
-                      <DialogContent>
+                      <DialogContent className="max-w-md">
                         <DialogHeader>
-                          <DialogTitle>Redefinir Senha</DialogTitle>
+                          <DialogTitle className="text-lg">Redefinir Senha</DialogTitle>
                         </DialogHeader>
                         <div className="space-y-4 py-4">
                           <div>
-                            <Label>Usuário</Label>
+                            <Label className="text-sm">Usuário</Label>
                             <p className="text-sm text-muted-foreground">{usuario.nome}</p>
                           </div>
                           <div className="space-y-2">
-                            <Label htmlFor="nova-senha">Nova Senha</Label>
+                            <Label htmlFor="nova-senha" className="text-sm">Nova Senha</Label>
                             <Input
                               id="nova-senha"
                               type="password"
@@ -331,7 +333,7 @@ export const ListaUsuarios = ({ filiais = [], setores = [] }: ListaUsuariosProps
                               minLength={6}
                             />
                           </div>
-                          <div className="flex gap-2 justify-end">
+                          <div className="flex flex-col sm:flex-row gap-2 justify-end">
                             <Button
                               type="button"
                               variant="outline"
@@ -339,10 +341,11 @@ export const ListaUsuarios = ({ filiais = [], setores = [] }: ListaUsuariosProps
                                 setRedefinindoSenha(null);
                                 setNovaSenha("");
                               }}
+                              className="w-full sm:w-auto"
                             >
                               Cancelar
                             </Button>
-                            <Button onClick={handleRedefinirSenha}>
+                            <Button onClick={handleRedefinirSenha} className="w-full sm:w-auto">
                               Redefinir
                             </Button>
                           </div>
@@ -352,7 +355,7 @@ export const ListaUsuarios = ({ filiais = [], setores = [] }: ListaUsuariosProps
 
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button size="sm" variant="destructive">
+                        <Button size="sm" variant="destructive" className="w-full">
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </AlertDialogTrigger>
@@ -387,13 +390,13 @@ export const ListaUsuarios = ({ filiais = [], setores = [] }: ListaUsuariosProps
 
       {/* Dialog de Edição */}
       <Dialog open={!!editandoUsuario} onOpenChange={(open) => !open && setEditandoUsuario(null)}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Editar Usuário</DialogTitle>
+            <DialogTitle className="text-lg sm:text-xl">Editar Usuário</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="edit-nome">Nome Completo</Label>
+              <Label htmlFor="edit-nome" className="text-sm">Nome Completo</Label>
               <Input
                 id="edit-nome"
                 value={formData.nome}
@@ -402,7 +405,7 @@ export const ListaUsuarios = ({ filiais = [], setores = [] }: ListaUsuariosProps
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="edit-email">E-mail</Label>
+              <Label htmlFor="edit-email" className="text-sm">E-mail</Label>
               <Input
                 id="edit-email"
                 type="email"
@@ -477,15 +480,16 @@ export const ListaUsuarios = ({ filiais = [], setores = [] }: ListaUsuariosProps
               <Label htmlFor="edit-ativo">Usuário ativo</Label>
             </div>
 
-            <div className="flex gap-2 justify-end pt-4">
+            <div className="flex flex-col sm:flex-row gap-2 justify-end pt-4">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => setEditandoUsuario(null)}
+                className="w-full sm:w-auto"
               >
                 Cancelar
               </Button>
-              <Button onClick={handleSalvarEdicao}>
+              <Button onClick={handleSalvarEdicao} className="w-full sm:w-auto">
                 Salvar
               </Button>
             </div>
