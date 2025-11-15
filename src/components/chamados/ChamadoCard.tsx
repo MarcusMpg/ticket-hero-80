@@ -54,24 +54,24 @@ export const ChamadoCard = ({
   return (
     <Card className="shadow-card hover:shadow-elevated transition-shadow cursor-pointer" onClick={() => navigate(`/chamado/${chamado.id_chamado}`)}>
       <CardHeader className="pb-3">
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-lg truncate">{chamado.titulo}</h3>
+        <div className="flex flex-col sm:flex-row items-start justify-between gap-2">
+          <div className="flex-1 min-w-0 w-full">
+            <h3 className="font-semibold text-base sm:text-lg truncate">{chamado.titulo}</h3>
             <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{chamado.descricao}</p>
           </div>
-          <Badge variant={prioridadeConfig[chamado.prioridade].variant}>
+          <Badge variant={prioridadeConfig[chamado.prioridade].variant} className="shrink-0">
             {prioridadeConfig[chamado.prioridade].label}
           </Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
-        <div className="flex items-center gap-2 text-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-sm">
           <Badge variant={statusConfig[chamado.status].variant}>
             {statusConfig[chamado.status].label}
           </Badge>
-          <div className="flex items-center gap-1 text-muted-foreground">
+          <div className="flex items-center gap-1 text-muted-foreground text-xs sm:text-sm">
             <Clock className="h-4 w-4" />
-            <span>{formatDate(chamado.data_abertura)}</span>
+            <span className="truncate">{formatDate(chamado.data_abertura)}</span>
           </div>
         </div>
 
@@ -89,22 +89,23 @@ export const ChamadoCard = ({
           </div>
         )}
 
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           {isAtendente && !chamado.id_atendente && chamado.status === 'aberto' && (
             <Button 
               variant="default" 
               size="sm" 
-              className="flex-1"
+              className="w-full sm:flex-1"
               onClick={handleAssumirClick}
             >
               <CheckCircle className="h-4 w-4 mr-2" />
-              Assumir Chamado
+              <span className="hidden sm:inline">Assumir Chamado</span>
+              <span className="sm:hidden">Assumir</span>
             </Button>
           )}
           <Button 
             variant="outline" 
             size="sm" 
-            className={isAtendente && !chamado.id_atendente && chamado.status === 'aberto' ? 'flex-1' : 'w-full'}
+            className={isAtendente && !chamado.id_atendente && chamado.status === 'aberto' ? 'w-full sm:flex-1' : 'w-full'}
             onClick={() => navigate(`/chamado/${chamado.id_chamado}`)}
           >
             Ver Detalhes

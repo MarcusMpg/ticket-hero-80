@@ -73,14 +73,14 @@ export default function TrocarSenha() {
 
   return (
     <MainLayout>
-      <div className="flex items-center justify-center py-8">
+      <div className="flex items-center justify-center py-4 sm:py-8 px-4">
         <Card className="w-full max-w-md shadow-card">
           <CardHeader>
             <div className="mb-2 flex items-center gap-2">
               <Lock className="h-5 w-5 text-primary" />
-              <CardTitle>Trocar Senha</CardTitle>
+              <CardTitle className="text-xl sm:text-2xl">Trocar Senha</CardTitle>
             </div>
-            <CardDescription>Altere sua senha de acesso ao sistema</CardDescription>
+            <CardDescription className="text-sm">Altere sua senha de acesso ao sistema</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -117,7 +117,7 @@ export default function TrocarSenha() {
                   required
                 />
               </div>
-              <div className="flex gap-2 pt-2">
+              <div className="flex flex-col sm:flex-row gap-2 pt-2">
                 <Button
                   type="button"
                   variant="outline"

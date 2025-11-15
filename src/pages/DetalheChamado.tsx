@@ -380,23 +380,24 @@ export default function DetalheChamado() {
   return (
     <MainLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <div>
-              <h1 className="text-3xl font-bold">{chamado.titulo}</h1>
-              <p className="text-sm text-muted-foreground">Chamado #{chamado.id_chamado}</p>
+            <div className="flex-1 min-w-0">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold truncate">{chamado.titulo}</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground">Chamado #{chamado.id_chamado}</p>
             </div>
           </div>
           
           {podeDeletear && (
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="destructive" size="sm">
+                <Button variant="destructive" size="sm" className="w-full sm:w-auto">
                   <Trash2 className="h-4 w-4 mr-2" />
-                  Deletar Chamado
+                  <span className="hidden sm:inline">Deletar Chamado</span>
+                  <span className="sm:hidden">Deletar</span>
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
@@ -418,7 +419,7 @@ export default function DetalheChamado() {
         </div>
 
         <div className="grid gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-6 order-2 lg:order-1">
             <Card className="shadow-card">
               <CardHeader>
                 <CardTitle>Descrição</CardTitle>
@@ -489,8 +490,10 @@ export default function DetalheChamado() {
                     value={novoComentario}
                     onChange={(e) => setNovoComentario(e.target.value)}
                     rows={3}
+                    className="text-sm"
                   />
-                  <Button onClick={handleAdicionarComentario} disabled={!novoComentario.trim()}>
+                  <Button onClick={handleAdicionarComentario} disabled={!novoComentario.trim()} className="w-full sm:w-auto">
+                    <MessageSquare className="h-4 w-4 mr-2" />
                     Adicionar Comentário
                   </Button>
                 </div>
@@ -498,52 +501,52 @@ export default function DetalheChamado() {
             </Card>
           </div>
 
-          <div className="space-y-6">
+          <div className="space-y-6 order-1 lg:order-2">
             <Card className="shadow-card">
               <CardHeader>
                 <CardTitle>Informações</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+                 <CardContent className="space-y-4 text-sm">
                 <div>
-                  <p className="text-sm text-muted-foreground mb-1">Status</p>
+                  <p className="text-muted-foreground mb-1">Status</p>
                   <Badge variant={statusConfig[chamado.status].variant}>
                     {statusConfig[chamado.status].label}
                   </Badge>
                 </div>
 
                 <div>
-                  <p className="text-sm text-muted-foreground mb-1">Prioridade</p>
+                  <p className="text-muted-foreground mb-1">Prioridade</p>
                   <Badge variant={prioridadeConfig[chamado.prioridade].variant}>
                     {prioridadeConfig[chamado.prioridade].label}
                   </Badge>
                 </div>
 
                 <div>
-                  <p className="text-sm text-muted-foreground mb-1">Solicitante</p>
-                  <p className="text-sm font-medium">{chamado.solicitante_nome}</p>
+                  <p className="text-muted-foreground mb-1">Solicitante</p>
+                  <p className="font-medium">{chamado.solicitante_nome}</p>
                 </div>
 
                 {chamado.atendente_nome && (
                   <div>
-                    <p className="text-sm text-muted-foreground mb-1">Atendente</p>
-                    <p className="text-sm font-medium">{chamado.atendente_nome}</p>
+                    <p className="text-muted-foreground mb-1">Atendente</p>
+                    <p className="font-medium">{chamado.atendente_nome}</p>
                   </div>
                 )}
 
                 <div>
-                  <p className="text-sm text-muted-foreground mb-1">Data de Abertura</p>
-                  <div className="flex items-center gap-1 text-sm">
+                  <p className="text-muted-foreground mb-1">Data de Abertura</p>
+                  <div className="flex items-center gap-1">
                     <Clock className="h-4 w-4" />
-                    <span>{formatDate(chamado.data_abertura)}</span>
+                    <span className="text-xs sm:text-sm">{formatDate(chamado.data_abertura)}</span>
                   </div>
                 </div>
 
                 {chamado.data_fechamento && (
                   <div>
-                    <p className="text-sm text-muted-foreground mb-1">Data de Fechamento</p>
-                    <div className="flex items-center gap-1 text-sm">
+                    <p className="text-muted-foreground mb-1">Data de Fechamento</p>
+                    <div className="flex items-center gap-1">
                       <Clock className="h-4 w-4" />
-                      <span>{formatDate(chamado.data_fechamento)}</span>
+                      <span className="text-xs sm:text-sm">{formatDate(chamado.data_fechamento)}</span>
                     </div>
                   </div>
                 )}
@@ -557,7 +560,7 @@ export default function DetalheChamado() {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {!chamado.id_atendente && (
-                    <Button className="w-full" onClick={handleAssumirChamado}>
+                    <Button className="w-full" onClick={handleAssumirChamado} size="sm">
                       Assumir Chamado
                     </Button>
                   )}
@@ -565,7 +568,7 @@ export default function DetalheChamado() {
                   <div className="space-y-2">
                     <p className="text-sm font-medium">Alterar Status</p>
                     <Select value={novoStatus} onValueChange={setNovoStatus}>
-                      <SelectTrigger>
+                      <SelectTrigger className="text-sm">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -588,7 +591,7 @@ export default function DetalheChamado() {
                     
                     {novoStatus === 'aguardando' && (
                       <div className="space-y-2">
-                        <label className="text-sm text-muted-foreground">
+                        <label className="text-xs sm:text-sm text-muted-foreground">
                           Justificativa (obrigatória)
                         </label>
                         <Textarea
@@ -596,6 +599,7 @@ export default function DetalheChamado() {
                           value={justificativa}
                           onChange={(e) => setJustificativa(e.target.value)}
                           rows={3}
+                          className="text-sm"
                         />
                       </div>
                     )}
@@ -603,6 +607,7 @@ export default function DetalheChamado() {
                     <Button
                       variant="outline"
                       className="w-full"
+                      size="sm"
                       onClick={handleMudarStatus}
                       disabled={novoStatus === chamado.status}
                     >
