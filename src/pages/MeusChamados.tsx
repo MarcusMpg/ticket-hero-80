@@ -7,12 +7,15 @@ import { Chamado } from "@/types/chamado";
 import { Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 export default function MeusChamados() {
   const [chamados, setChamados] = useState<Chamado[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchChamados = async () => {
@@ -55,6 +58,7 @@ export default function MeusChamados() {
         });
 
         setChamados(chamadosMapeados);
+        setIsInitialLoad(false);
       } catch (error) {
         console.error("Erro ao carregar chamados:", error);
       } finally {
@@ -77,7 +81,7 @@ export default function MeusChamados() {
           table: 'chamados',
           filter: `id_solicitante=eq.${user.id_usuario}`
         },
-        async () => {
+        async (payload) => {
           // Recarregar chamados quando houver mudanças
           const { data, error } = await supabase
             .from('chamados')
@@ -114,6 +118,21 @@ export default function MeusChamados() {
             });
 
             setChamados(chamadosMapeados);
+
+            // Mostrar notificação apenas após carga inicial
+            if (!isInitialLoad) {
+              if (payload.eventType === 'UPDATE') {
+                toast({
+                  title: "Chamado atualizado",
+                  description: "Um dos seus chamados foi atualizado",
+                });
+              } else if (payload.eventType === 'DELETE') {
+                toast({
+                  title: "Chamado removido",
+                  description: "Um chamado foi removido",
+                });
+              }
+            }
           }
         }
       )

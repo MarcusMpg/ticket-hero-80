@@ -5,11 +5,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Chamado } from "@/types/chamado";
 import { Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 export default function MeusAtendimentos() {
   const [chamados, setChamados] = useState<Chamado[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const { user } = useAuth();
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchChamados = async () => {
@@ -44,6 +47,7 @@ export default function MeusAtendimentos() {
         }));
 
         setChamados(chamadosMapeados);
+        setIsInitialLoad(false);
       } catch (error) {
         console.error("Erro ao carregar atendimentos:", error);
       } finally {
@@ -66,7 +70,7 @@ export default function MeusAtendimentos() {
           table: 'chamados',
           filter: `id_atendente=eq.${user.id_usuario}`
         },
-        async () => {
+        async (payload) => {
           // Recarregar chamados quando houver mudanças
           const { data, error } = await supabase
             .from('chamados')
@@ -94,6 +98,26 @@ export default function MeusAtendimentos() {
               atendente_nome: item.atendente?.nome,
             }));
             setChamados(chamadosMapeados);
+
+            // Mostrar notificação apenas após carga inicial
+            if (!isInitialLoad) {
+              if (payload.eventType === 'INSERT') {
+                toast({
+                  title: "Novo atendimento",
+                  description: "Um novo chamado foi atribuído a você",
+                });
+              } else if (payload.eventType === 'UPDATE') {
+                toast({
+                  title: "Atendimento atualizado",
+                  description: "Um dos seus atendimentos foi atualizado",
+                });
+              } else if (payload.eventType === 'DELETE') {
+                toast({
+                  title: "Atendimento removido",
+                  description: "Um atendimento foi removido",
+                });
+              }
+            }
           }
         }
       )
