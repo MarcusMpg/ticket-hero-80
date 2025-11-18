@@ -63,6 +63,65 @@ export default function MeusChamados() {
     };
 
     fetchChamados();
+
+    if (!user) return;
+
+    // Configurar realtime para atualizar chamados em tempo real
+    const channel = supabase
+      .channel('meus-chamados')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'chamados',
+          filter: `id_solicitante=eq.${user.id_usuario}`
+        },
+        async () => {
+          // Recarregar chamados quando houver mudanças
+          const { data, error } = await supabase
+            .from('chamados')
+            .select(`
+              *,
+              solicitante:usuario!fk_chamados_id_solicitante_cascade(nome),
+              atendente:usuario!fk_chamados_id_atendente_setnull(nome)
+            `)
+            .eq('id_solicitante', user.id_usuario)
+            .order('data_abertura', { ascending: false });
+
+          if (!error && data) {
+            const normalize = (s: string | null | undefined) =>
+              s ? s.toString().toLowerCase().replace(/\s+/g, "_") : "";
+
+            const chamadosMapeados: Chamado[] = data.map((item: any) => {
+              const statusNorm = normalize(item.status_chamado) as Chamado["status"];
+              const prioridadeNorm = normalize(item.prioridade) as Chamado["prioridade"];
+
+              return {
+                id_chamado: item.id_chamado,
+                titulo: item.titulo,
+                descricao: item.descricao,
+                status: statusNorm,
+                prioridade: prioridadeNorm,
+                id_solicitante: item.id_solicitante,
+                id_atendente: item.id_atendente,
+                id_setor_destino: item.id_setor,
+                data_abertura: item.data_abertura,
+                data_fechamento: item.data_fechamento,
+                solicitante_nome: item.solicitante?.nome,
+                atendente_nome: item.atendente?.nome,
+              };
+            });
+
+            setChamados(chamadosMapeados);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user]);
 
   if (isLoading) {

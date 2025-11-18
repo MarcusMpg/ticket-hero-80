@@ -128,6 +128,98 @@ export default function DetalheChamado() {
     };
 
     fetchChamado();
+
+    if (!id) return;
+
+    // Configurar realtime para atualizar chamado e interações em tempo real
+    const chamadoChannel = supabase
+      .channel(`chamado-${id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'chamados',
+          filter: `id_chamado=eq.${id}`
+        },
+        async () => {
+          // Recarregar chamado quando houver mudanças
+          const { data, error } = await supabase
+            .from('chamados')
+            .select(`
+              *,
+              solicitante:usuario!fk_chamados_id_solicitante_cascade(nome),
+              atendente:usuario!fk_chamados_id_atendente_setnull(nome)
+            `)
+            .eq('id_chamado', Number(id))
+            .single();
+
+          if (!error && data) {
+            const normalize = (s: string | null | undefined) =>
+              s ? s.toString().toLowerCase().replace(/\s+/g, "_") : "";
+
+            const statusNorm = normalize(data.status_chamado) as Chamado["status"];
+            const prioridadeNorm = normalize(data.prioridade) as Chamado["prioridade"];
+
+            const chamadoMapeado: Chamado = {
+              id_chamado: data.id_chamado,
+              titulo: data.titulo,
+              descricao: data.descricao,
+              status: statusNorm,
+              prioridade: prioridadeNorm,
+              id_solicitante: data.id_solicitante,
+              id_atendente: data.id_atendente,
+              id_setor_destino: data.id_setor,
+              data_abertura: data.data_abertura,
+              data_fechamento: data.data_fechamento,
+              solicitante_nome: (data.solicitante as any)?.[0]?.nome,
+              atendente_nome: (data.atendente as any)?.[0]?.nome,
+            };
+
+            setChamado(chamadoMapeado);
+            setNovoStatus(chamadoMapeado.status);
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'interacao',
+          filter: `id_chamado=eq.${id}`
+        },
+        async () => {
+          // Recarregar interações quando houver mudanças
+          const { data, error } = await supabase
+            .from('interacao')
+            .select(`
+              *,
+              usuario(nome)
+            `)
+            .eq('id_chamado', Number(id))
+            .order('data_interacao', { ascending: true });
+
+          if (!error && data) {
+            const interacoesMapeadas: Interacao[] = data.map((item: any) => ({
+              id_interacao: item.id_interacao,
+              id_chamado: item.id_chamado,
+              id_funcionario: item.id_usuario,
+              tipo_interacao: item.tipo_interacao as any,
+              mensagem: item.conteudo,
+              data_interacao: item.data_interacao,
+              funcionario_nome: item.usuario?.nome,
+            }));
+
+            setInteracoes(interacoesMapeadas);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(chamadoChannel);
+    };
   }, [id, toast]);
 
   const handleAdicionarComentario = async () => {
