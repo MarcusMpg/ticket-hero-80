@@ -39,6 +39,7 @@ export default function DetalheChamado() {
   const [novoStatus, setNovoStatus] = useState("");
   const [justificativa, setJustificativa] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   useEffect(() => {
     const fetchChamado = async () => {
@@ -115,6 +116,7 @@ export default function DetalheChamado() {
         }));
 
         setInteracoes(interacoesMapeadas);
+        setIsInitialLoad(false);
       } catch (error: any) {
         console.error("Erro ao carregar chamado:", error);
         toast({
@@ -142,7 +144,7 @@ export default function DetalheChamado() {
           table: 'chamados',
           filter: `id_chamado=eq.${id}`
         },
-        async () => {
+        async (payload) => {
           // Recarregar chamado quando houver mudanças
           const { data, error } = await supabase
             .from('chamados')
@@ -178,6 +180,14 @@ export default function DetalheChamado() {
 
             setChamado(chamadoMapeado);
             setNovoStatus(chamadoMapeado.status);
+
+            // Mostrar notificação apenas após carga inicial
+            if (!isInitialLoad && payload.eventType === 'UPDATE') {
+              toast({
+                title: "Chamado atualizado",
+                description: "Este chamado foi atualizado",
+              });
+            }
           }
         }
       )
@@ -189,7 +199,7 @@ export default function DetalheChamado() {
           table: 'interacao',
           filter: `id_chamado=eq.${id}`
         },
-        async () => {
+        async (payload) => {
           // Recarregar interações quando houver mudanças
           const { data, error } = await supabase
             .from('interacao')
@@ -212,6 +222,14 @@ export default function DetalheChamado() {
             }));
 
             setInteracoes(interacoesMapeadas);
+
+            // Mostrar notificação apenas após carga inicial e para novos comentários
+            if (!isInitialLoad && payload.eventType === 'INSERT') {
+              toast({
+                title: "Nova interação",
+                description: "Um novo comentário foi adicionado",
+              });
+            }
           }
         }
       )

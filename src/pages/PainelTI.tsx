@@ -30,6 +30,7 @@ export default function PainelTI() {
   const [filtroPrioridade, setFiltroPrioridade] = useState<string>("");
   const [filtroStatus, setFiltroStatus] = useState<string>("");
   const [filtroData, setFiltroData] = useState<string>("");
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   if (!user?.eh_atendente && !user?.eh_admin) {
     return <Navigate to="/abrir-chamado" replace />;
@@ -66,6 +67,7 @@ export default function PainelTI() {
         }));
 
         setChamados(chamadosMapeados);
+        setIsInitialLoad(false);
 
         // Buscar filiais
         const { data: filiaisData, error: filiaisError } = await supabase
@@ -104,7 +106,7 @@ export default function PainelTI() {
           schema: 'public',
           table: 'chamados'
         },
-        async () => {
+        async (payload) => {
           // Recarregar chamados quando houver mudanças
           const { data, error } = await supabase
             .from('chamados')
@@ -131,6 +133,26 @@ export default function PainelTI() {
               atendente_nome: item.atendente?.nome,
             }));
             setChamados(chamadosMapeados);
+
+            // Mostrar notificação apenas após carga inicial
+            if (!isInitialLoad) {
+              if (payload.eventType === 'INSERT') {
+                toast({
+                  title: "Novo chamado",
+                  description: "Um novo chamado foi adicionado à fila",
+                });
+              } else if (payload.eventType === 'UPDATE') {
+                toast({
+                  title: "Chamado atualizado",
+                  description: "Um chamado foi atualizado",
+                });
+              } else if (payload.eventType === 'DELETE') {
+                toast({
+                  title: "Chamado removido",
+                  description: "Um chamado foi removido da fila",
+                });
+              }
+            }
           }
         }
       )
