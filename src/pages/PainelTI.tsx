@@ -93,6 +93,52 @@ export default function PainelTI() {
     };
 
     fetchData();
+
+    // Configurar realtime para atualizar chamados em tempo real
+    const channel = supabase
+      .channel('painel-ti-chamados')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'chamados'
+        },
+        async () => {
+          // Recarregar chamados quando houver mudanças
+          const { data, error } = await supabase
+            .from('chamados')
+            .select(`
+              *,
+              solicitante:usuario!fk_chamados_id_solicitante_cascade(nome),
+              atendente:usuario!fk_chamados_id_atendente_setnull(nome)
+            `)
+            .order('data_abertura', { ascending: false });
+
+          if (!error && data) {
+            const chamadosMapeados: Chamado[] = data.map((item: any) => ({
+              id_chamado: item.id_chamado,
+              titulo: item.titulo,
+              descricao: item.descricao,
+              status: item.status_chamado.toLowerCase() as any,
+              prioridade: item.prioridade.toLowerCase() as any,
+              id_solicitante: item.id_solicitante,
+              id_atendente: item.id_atendente,
+              id_setor_destino: item.id_setor,
+              data_abertura: item.data_abertura,
+              data_fechamento: item.data_fechamento,
+              solicitante_nome: item.solicitante?.nome,
+              atendente_nome: item.atendente?.nome,
+            }));
+            setChamados(chamadosMapeados);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   if (isLoading) {
