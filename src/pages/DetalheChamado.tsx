@@ -336,6 +336,16 @@ export default function DetalheChamado() {
       return;
     }
 
+    // Verificar se é concluído e se tem comentário de conclusão
+    if (novoStatus === 'concluido' && !justificativa.trim()) {
+      toast({
+        title: "Comentário de conclusão obrigatório",
+        description: "Você deve fornecer um comentário de conclusão ao finalizar o chamado.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('chamados')
@@ -344,15 +354,19 @@ export default function DetalheChamado() {
 
       if (error) throw error;
 
-      // Se for aguardando, registrar a justificativa como interação
-      if (novoStatus === 'aguardando' && user) {
+      // Se for aguardando ou concluído, registrar a justificativa/conclusão como interação
+      if ((novoStatus === 'aguardando' || novoStatus === 'concluido') && user) {
+        const tipoMensagem = novoStatus === 'aguardando' 
+          ? `Status alterado para AGUARDANDO. Justificativa: ${justificativa}`
+          : `Chamado CONCLUÍDO. Resolução: ${justificativa}`;
+
         const { data: interacaoData, error: interacaoError } = await supabase
           .from('interacao')
           .insert({
             id_chamado: Number(id),
             id_usuario: user.id_usuario,
             tipo_interacao: 'MUDANCA_STATUS',
-            conteudo: `Status alterado para AGUARDANDO. Justificativa: ${justificativa}`,
+            conteudo: tipoMensagem,
           })
           .select(`
             *,
@@ -699,13 +713,15 @@ export default function DetalheChamado() {
                       </SelectContent>
                     </Select>
                     
-                    {novoStatus === 'aguardando' && (
+                    {(novoStatus === 'aguardando' || novoStatus === 'concluido') && (
                       <div className="space-y-2">
                         <label className="text-xs sm:text-sm text-muted-foreground">
-                          Justificativa (obrigatória)
+                          {novoStatus === 'aguardando' ? 'Justificativa (obrigatória)' : 'Comentário de conclusão (obrigatório)'}
                         </label>
                         <Textarea
-                          placeholder="Descreva o motivo por estar aguardando..."
+                          placeholder={novoStatus === 'aguardando' 
+                            ? "Descreva o motivo por estar aguardando..." 
+                            : "Descreva a resolução do chamado..."}
                           value={justificativa}
                           onChange={(e) => setJustificativa(e.target.value)}
                           rows={3}
