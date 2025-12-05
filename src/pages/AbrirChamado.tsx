@@ -11,6 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { Ticket, Paperclip, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { enviarNotificacaoNovoChamado } from "@/services/emailService";
 
 export default function AbrirChamado() {
   const [titulo, setTitulo] = useState("");
@@ -80,6 +81,27 @@ export default function AbrirChamado() {
             });
 
           if (anexoError) throw anexoError;
+        }
+      }
+
+      // Buscar emails dos atendentes/admins para notificação
+      const { data: atendentes } = await supabase
+        .from('usuario')
+        .select('email, nome')
+        .in('tipo_usuario', ['ATENDENTE', 'ADMIN'])
+        .eq('ativo', true);
+
+      // Enviar notificação por email para cada atendente/admin
+      if (atendentes && atendentes.length > 0) {
+        for (const atendente of atendentes) {
+          await enviarNotificacaoNovoChamado({
+            to_email: atendente.email,
+            to_name: atendente.nome,
+            chamado_titulo: titulo,
+            chamado_descricao: descricao.substring(0, 200),
+            chamado_prioridade: prioridade.toUpperCase(),
+            solicitante_nome: user.nome,
+          });
         }
       }
 
