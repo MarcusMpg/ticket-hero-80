@@ -292,6 +292,7 @@ export type Database = {
     }
     Functions: {
       get_current_user_id_usuario: { Args: never; Returns: number }
+      is_current_user_admin: { Args: never; Returns: boolean }
       is_current_user_atendente: { Args: never; Returns: boolean }
     }
     Enums: {
