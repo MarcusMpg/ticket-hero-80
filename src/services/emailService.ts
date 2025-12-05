@@ -1,9 +1,9 @@
-import emailjs from '@emailjs/browser';
+import emailjs from "@emailjs/browser";
 
 // Credenciais do EmailJS - substitua pelos seus valores
-const SERVICE_ID = 'YOUR_SERVICE_ID';
-const TEMPLATE_ID = 'YOUR_TEMPLATE_ID';
-const PUBLIC_KEY = 'YOUR_PUBLIC_KEY';
+const SERVICE_ID = "service_7vi9pll";
+const TEMPLATE_ID = "template_i5gmkvu";
+const PUBLIC_KEY = "mPBimvFScFLs__Zm7";
 
 interface EmailParams {
   to_email: string;
@@ -14,7 +14,9 @@ interface EmailParams {
   solicitante_nome: string;
 }
 
-export const enviarNotificacaoNovoChamado = async (params: EmailParams): Promise<boolean> => {
+export const enviarNotificacaoNovoChamado = async (
+  params: EmailParams
+): Promise<boolean> => {
   try {
     const response = await emailjs.send(
       SERVICE_ID,
@@ -30,10 +32,10 @@ export const enviarNotificacaoNovoChamado = async (params: EmailParams): Promise
       PUBLIC_KEY
     );
 
-    console.log('Email enviado com sucesso:', response);
+    console.log("Email enviado com sucesso:", response);
     return true;
   } catch (error) {
-    console.error('Erro ao enviar email:', error);
+    console.error("Erro ao enviar email:", error);
     return false;
   }
 };
