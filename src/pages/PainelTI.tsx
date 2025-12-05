@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { ChamadoCard } from "@/components/chamados/ChamadoCard";
 import { useAuth } from "@/contexts/AuthContext";
@@ -30,7 +30,7 @@ export default function PainelTI() {
   const [filtroPrioridade, setFiltroPrioridade] = useState<string>("");
   const [filtroStatus, setFiltroStatus] = useState<string>("");
   const [filtroData, setFiltroData] = useState<string>("");
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const isInitialLoadRef = useRef(true);
 
   if (!user?.eh_atendente && !user?.eh_admin) {
     return <Navigate to="/abrir-chamado" replace />;
@@ -67,7 +67,7 @@ export default function PainelTI() {
         }));
 
         setChamados(chamadosMapeados);
-        setIsInitialLoad(false);
+        isInitialLoadRef.current = false;
 
         // Buscar filiais
         const { data: filiaisData, error: filiaisError } = await supabase
@@ -135,7 +135,7 @@ export default function PainelTI() {
             setChamados(chamadosMapeados);
 
             // Mostrar notificação apenas após carga inicial
-            if (!isInitialLoad) {
+            if (!isInitialLoadRef.current) {
               if (payload.eventType === 'INSERT') {
                 toast({
                   title: "Novo chamado",
