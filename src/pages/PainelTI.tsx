@@ -31,10 +31,8 @@ export default function PainelTI() {
   const [filtroStatus, setFiltroStatus] = useState<string>("");
   const [filtroData, setFiltroData] = useState<string>("");
   const isInitialLoadRef = useRef(true);
-
-  if (!user?.eh_atendente && !user?.eh_admin) {
-    return <Navigate to="/abrir-chamado" replace />;
-  }
+  
+  const isAuthorized = user?.eh_atendente || user?.eh_admin;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -162,6 +160,10 @@ export default function PainelTI() {
       supabase.removeChannel(channel);
     };
   }, []);
+
+  if (!isAuthorized) {
+    return <Navigate to="/abrir-chamado" replace />;
+  }
 
   if (isLoading) {
     return (
