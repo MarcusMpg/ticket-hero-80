@@ -84,26 +84,15 @@ export default function AbrirChamado() {
         }
       }
 
-      // Buscar emails dos atendentes/admins para notificação
-      const { data: atendentes } = await supabase
-        .from('usuario')
-        .select('email, nome')
-        .in('tipo_usuario', ['ATENDENTE', 'ADMIN'])
-        .eq('ativo', true);
-
-      // Enviar notificação por email para cada atendente/admin
-      if (atendentes && atendentes.length > 0) {
-        for (const atendente of atendentes) {
-          await enviarNotificacaoNovoChamado({
-            to_email: atendente.email,
-            to_name: atendente.nome,
-            chamado_titulo: titulo,
-            chamado_descricao: descricao.substring(0, 200),
-            chamado_prioridade: prioridade.toUpperCase(),
-            solicitante_nome: user.nome,
-          });
-        }
-      }
+      // Enviar notificação por email para o email fixo do TI
+      await enviarNotificacaoNovoChamado({
+        to_email: "chamados.feirao@outlook.com",
+        to_name: "Equipe TI",
+        chamado_titulo: titulo,
+        chamado_descricao: descricao.substring(0, 200),
+        chamado_prioridade: prioridade.toUpperCase(),
+        solicitante_nome: user.nome,
+      });
 
       toast({
         title: "Chamado aberto com sucesso!",
