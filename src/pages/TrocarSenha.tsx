@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import { Lock } from "lucide-react";
 
 export default function TrocarSenha() {
@@ -42,17 +43,30 @@ export default function TrocarSenha() {
     setIsLoading(true);
 
     try {
-      // Simulação de API - substituir pela chamada real
-      // const response = await fetch(`/api/funcionarios/${user?.id_funcionario}/senha`, {
-      //   method: 'PUT',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //     'Authorization': `Bearer ${token}`
-      //   },
-      //   body: JSON.stringify({ senhaAtual, novaSenha }),
-      // });
+      // First verify current password by re-authenticating
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user?.email || '',
+        password: senhaAtual,
+      });
 
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      if (signInError) {
+        toast({
+          title: "Erro",
+          description: "Senha atual incorreta.",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // Update password in Supabase Auth
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: novaSenha,
+      });
+
+      if (updateError) {
+        throw updateError;
+      }
 
       toast({
         title: "Senha alterada com sucesso!",
@@ -60,10 +74,10 @@ export default function TrocarSenha() {
       });
 
       navigate(-1);
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Erro ao alterar senha",
-        description: "Verifique sua senha atual e tente novamente.",
+        description: error.message || "Verifique sua senha atual e tente novamente.",
         variant: "destructive",
       });
     } finally {

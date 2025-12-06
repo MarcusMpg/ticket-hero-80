@@ -12,7 +12,7 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { login: loginFn, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { login: loginFn, isAuthenticated, isLoading: authLoading, mustChangePassword } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -25,6 +25,9 @@ export default function Login() {
 
   // Redirect authenticated users (after hooks)
   if (!authLoading && isAuthenticated) {
+    if (mustChangePassword) {
+      return <Navigate to="/primeiro-acesso" replace />;
+    }
     return <Navigate to="/meus-chamados" replace />;
   }
 
