@@ -195,16 +195,33 @@ export const ListaUsuarios = ({ filiais = [], setores = [] }: ListaUsuariosProps
 
   const handleExcluir = async (idUsuario: number) => {
     try {
-      const { error } = await supabase
-        .from('usuario')
-        .delete()
-        .eq('id_usuario', idUsuario);
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        throw new Error('Não autenticado');
+      }
 
-      if (error) throw error;
+      const response = await fetch(
+        `https://ojrqxpaiwksguurfzunh.supabase.co/functions/v1/deletar-usuario`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ id_usuario: idUsuario }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Erro ao excluir usuário');
+      }
 
       toast({
         title: "Sucesso",
-        description: "Usuário excluído com sucesso!",
+        description: "Usuário excluído completamente!",
       });
 
       fetchUsuarios();
