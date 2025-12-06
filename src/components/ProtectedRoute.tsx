@@ -1,4 +1,4 @@
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface ProtectedRouteProps {
@@ -7,6 +7,7 @@ interface ProtectedRouteProps {
 
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { isAuthenticated, isLoading, mustChangePassword } = useAuth();
+  const location = useLocation();
 
   if (isLoading) {
     return (
@@ -20,7 +21,9 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     return <Navigate to="/login" replace />;
   }
 
-  if (mustChangePassword) {
+  // Redirect to primeiro-acesso if user must change password
+  // But not if already on primeiro-acesso page (handled by that component)
+  if (mustChangePassword && location.pathname !== "/primeiro-acesso") {
     return <Navigate to="/primeiro-acesso" replace />;
   }
 

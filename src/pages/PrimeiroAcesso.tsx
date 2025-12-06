@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,9 +13,28 @@ export default function PrimeiroAcesso() {
   const [novaSenha, setNovaSenha] = useState("");
   const [confirmarSenha, setConfirmarSenha] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { user, refreshUser } = useAuth();
-  const navigate = useNavigate();
+  const [passwordChanged, setPasswordChanged] = useState(false);
+  const { user, isLoading: authLoading, isAuthenticated, mustChangePassword, refreshUser } = useAuth();
   const { toast } = useToast();
+
+  // Show loading while auth is loading
+  if (authLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  // Redirect to login if not authenticated
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  // If password was just changed or user doesn't need to change, redirect to main page
+  if (passwordChanged || !mustChangePassword) {
+    return <Navigate to="/meus-chamados" replace />;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,7 +76,7 @@ export default function PrimeiroAcesso() {
         throw updateError;
       }
 
-      // Refresh user data first to update the state
+      // Refresh user data to update the state
       await refreshUser();
       
       toast({
@@ -65,8 +84,8 @@ export default function PrimeiroAcesso() {
         description: "Sua senha foi atualizada. Bem-vindo ao sistema!",
       });
 
-      // Use window.location for a full page reload to ensure state is fresh
-      window.location.href = "/meus-chamados";
+      // Set local state to trigger redirect via Navigate component
+      setPasswordChanged(true);
     } catch (error: any) {
       toast({
         title: "Erro ao alterar senha",
