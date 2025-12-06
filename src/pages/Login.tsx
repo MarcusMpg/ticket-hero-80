@@ -48,12 +48,12 @@ export default function Login() {
         return;
       }
 
+      // Wait a moment for auth state to update, then check if password change is needed
+      // The Navigate component will handle the redirect based on mustChangePassword
       toast({
         title: "Login realizado com sucesso!",
         description: "Bem-vindo ao sistema de chamados.",
       });
-
-      setIsLoading(false);
     } catch (error: any) {
       toast({
         title: "Erro ao fazer login",
