@@ -10,6 +10,7 @@ export interface Usuario {
   id_setor: number;
   id_filial: number;
   ativo: boolean;
+  deve_trocar_senha: boolean;
 }
 
 export interface User extends Usuario {
@@ -23,9 +24,11 @@ interface AuthContextType {
   session: Session | null;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<{ error: any }>;
-  signup: (email: string, password: string, userData: Omit<Usuario, 'id_usuario'>) => Promise<{ error: any }>;
+  signup: (email: string, password: string, userData: Omit<Usuario, 'id_usuario' | 'deve_trocar_senha'>) => Promise<{ error: any }>;
   logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;
   isLoading: boolean;
+  mustChangePassword: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -109,6 +112,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         id_setor: usuario.id_filial || 1,
         id_filial: usuario.id_filial,
         ativo: usuario.ativo,
+        deve_trocar_senha: usuario.deve_trocar_senha ?? false,
         authId,
         eh_atendente: usuario.tipo_usuario === 'atendente' || usuario.tipo_usuario === 'ATENDENTE',
         eh_admin: usuario.tipo_usuario === 'ADMIN' || usuario.tipo_usuario === 'admin'
@@ -180,6 +184,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setSession(null);
   };
 
+  const refreshUser = async () => {
+    if (session?.user?.id) {
+      await loadUserData(session.user.id);
+    }
+  };
+
   const value = {
     user,
     session,
@@ -187,7 +197,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     login,
     signup,
     logout,
+    refreshUser,
     isLoading,
+    mustChangePassword: user?.deve_trocar_senha ?? false,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

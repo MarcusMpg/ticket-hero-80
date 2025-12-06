@@ -239,6 +239,7 @@ export type Database = {
         Row: {
           ativo: boolean
           data_cadastro: string | null
+          deve_trocar_senha: boolean
           email: string
           id_filial: number
           id_setor: number | null
@@ -250,6 +251,7 @@ export type Database = {
         Insert: {
           ativo?: boolean
           data_cadastro?: string | null
+          deve_trocar_senha?: boolean
           email: string
           id_filial: number
           id_setor?: number | null
@@ -261,6 +263,7 @@ export type Database = {
         Update: {
           ativo?: boolean
           data_cadastro?: string | null
+          deve_trocar_senha?: boolean
           email?: string
           id_filial?: number
           id_setor?: number | null

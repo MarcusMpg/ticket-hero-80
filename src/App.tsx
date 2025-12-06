@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import Login from "./pages/Login";
 import TrocarSenha from "./pages/TrocarSenha";
+import PrimeiroAcesso from "./pages/PrimeiroAcesso";
 import AbrirChamado from "./pages/AbrirChamado";
 import MeusChamados from "./pages/MeusChamados";
 import PainelTI from "./pages/PainelTI";
@@ -25,6 +26,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/primeiro-acesso" element={<PrimeiroAcesso />} />
             <Route path="/trocar-senha" element={<TrocarSenha />} />
             <Route path="/abrir-chamado" element={<AbrirChamado />} />
             <Route path="/meus-chamados" element={<MeusChamados />} />

@@ -240,7 +240,8 @@ serve(async (req) => {
         id_filial,
         id_setor,
         senha_hash: 'supabase_auth',
-        ativo: true
+        ativo: true,
+        deve_trocar_senha: true // Força troca de senha no primeiro acesso
       })
       .select('id_usuario')
       .single();
