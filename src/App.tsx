@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
+import ProtectedRoute from "./components/ProtectedRoute";
 import Login from "./pages/Login";
 import TrocarSenha from "./pages/TrocarSenha";
 import PrimeiroAcesso from "./pages/PrimeiroAcesso";
@@ -27,12 +28,12 @@ const App = () => (
             <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="/login" element={<Login />} />
             <Route path="/primeiro-acesso" element={<PrimeiroAcesso />} />
-            <Route path="/trocar-senha" element={<TrocarSenha />} />
-            <Route path="/abrir-chamado" element={<AbrirChamado />} />
-            <Route path="/meus-chamados" element={<MeusChamados />} />
-            <Route path="/painel-ti" element={<PainelTI />} />
-            <Route path="/meus-atendimentos" element={<MeusAtendimentos />} />
-            <Route path="/chamado/:id" element={<DetalheChamado />} />
+            <Route path="/trocar-senha" element={<ProtectedRoute><TrocarSenha /></ProtectedRoute>} />
+            <Route path="/abrir-chamado" element={<ProtectedRoute><AbrirChamado /></ProtectedRoute>} />
+            <Route path="/meus-chamados" element={<ProtectedRoute><MeusChamados /></ProtectedRoute>} />
+            <Route path="/painel-ti" element={<ProtectedRoute><PainelTI /></ProtectedRoute>} />
+            <Route path="/meus-atendimentos" element={<ProtectedRoute><MeusAtendimentos /></ProtectedRoute>} />
+            <Route path="/chamado/:id" element={<ProtectedRoute><DetalheChamado /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
