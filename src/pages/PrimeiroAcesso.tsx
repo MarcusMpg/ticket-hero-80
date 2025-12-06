@@ -50,11 +50,8 @@ export default function PrimeiroAcesso() {
         throw authError;
       }
 
-      // Update the flag in usuario table
-      const { error: updateError } = await supabase
-        .from('usuario')
-        .update({ deve_trocar_senha: false })
-        .eq('id_usuario', user?.id_usuario);
+      // Update the flag using the security definer function
+      const { error: updateError } = await supabase.rpc('mark_password_changed');
 
       if (updateError) {
         throw updateError;

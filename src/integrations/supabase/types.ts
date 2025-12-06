@@ -297,6 +297,7 @@ export type Database = {
       get_current_user_id_usuario: { Args: never; Returns: number }
       is_current_user_admin: { Args: never; Returns: boolean }
       is_current_user_atendente: { Args: never; Returns: boolean }
+      mark_password_changed: { Args: never; Returns: undefined }
     }
     Enums: {
       [_ in never]: never
