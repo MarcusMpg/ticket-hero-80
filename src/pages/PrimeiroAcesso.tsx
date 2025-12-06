@@ -57,14 +57,16 @@ export default function PrimeiroAcesso() {
         throw updateError;
       }
 
+      // Refresh user data first to update the state
+      await refreshUser();
+      
       toast({
         title: "Senha alterada com sucesso!",
         description: "Sua senha foi atualizada. Bem-vindo ao sistema!",
       });
 
-      // Refresh user data and redirect
-      await refreshUser();
-      navigate("/meus-chamados", { replace: true });
+      // Use window.location for a full page reload to ensure state is fresh
+      window.location.href = "/meus-chamados";
     } catch (error: any) {
       toast({
         title: "Erro ao alterar senha",
