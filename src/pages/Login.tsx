@@ -6,10 +6,10 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { Lock, Mail } from "lucide-react";
+import { Lock, User } from "lucide-react";
 
 export default function Login() {
-  const [email, setEmail] = useState("");
+  const [nomeUsuario, setNomeUsuario] = useState("");
   const [senha, setSenha] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { login: loginFn, isAuthenticated, isLoading: authLoading, mustChangePassword } = useAuth();
@@ -36,7 +36,9 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      const { error } = await loginFn(email, senha);
+      // Gera email interno a partir do nome de usuário
+      const internalEmail = `${nomeUsuario.toLowerCase().trim()}@internal.local`;
+      const { error } = await loginFn(internalEmail, senha);
 
       if (error) {
         toast({
@@ -77,15 +79,15 @@ export default function Login() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">E-mail</Label>
+              <Label htmlFor="nomeUsuario">Nome de Usuário</Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
-                  id="email"
-                  type="email"
-                  placeholder="seu.email@empresa.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  id="nomeUsuario"
+                  type="text"
+                  placeholder="seu.usuario"
+                  value={nomeUsuario}
+                  onChange={(e) => setNomeUsuario(e.target.value)}
                   className="pl-10"
                   required
                 />
