@@ -245,6 +245,7 @@ export type Database = {
           id_setor: number | null
           id_usuario: number
           nome: string
+          nome_usuario: string
           senha_hash: string
           tipo_usuario: string
         }
@@ -257,6 +258,7 @@ export type Database = {
           id_setor?: number | null
           id_usuario?: number
           nome: string
+          nome_usuario: string
           senha_hash: string
           tipo_usuario: string
         }
@@ -269,6 +271,7 @@ export type Database = {
           id_setor?: number | null
           id_usuario?: number
           nome?: string
+          nome_usuario?: string
           senha_hash?: string
           tipo_usuario?: string
         }
