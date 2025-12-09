@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Lock, User } from "lucide-react";
 
@@ -36,9 +37,24 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      // Gera email interno a partir do nome de usuário
-      const internalEmail = `${nomeUsuario.toLowerCase().trim()}@internal.local`;
-      const { error } = await loginFn(internalEmail, senha);
+      // Buscar o email real do usuário pelo nome de usuário
+      const { data: usuario, error: lookupError } = await supabase
+        .from('usuario')
+        .select('email')
+        .eq('nome_usuario', nomeUsuario.toLowerCase().trim())
+        .maybeSingle();
+
+      if (lookupError || !usuario) {
+        toast({
+          title: "Erro ao fazer login",
+          description: "Usuário não encontrado.",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      const { error } = await loginFn(usuario.email, senha);
 
       if (error) {
         toast({
