@@ -36,20 +36,18 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      const { error } = await loginFn(email, senha);
+      const { error } = await loginFn(email.toLowerCase().trim(), senha);
 
       if (error) {
         toast({
           title: "Erro ao fazer login",
-          description: error.message,
+          description: "Email ou senha inválidos.",
           variant: "destructive",
         });
         setIsLoading(false);
         return;
       }
 
-      // Wait a moment for auth state to update, then check if password change is needed
-      // The Navigate component will handle the redirect based on mustChangePassword
       toast({
         title: "Login realizado com sucesso!",
         description: "Bem-vindo ao sistema de chamados.",
@@ -77,13 +75,13 @@ export default function Login() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">E-mail</Label>
+              <Label htmlFor="email">Email</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="email"
                   type="email"
-                  placeholder="seu.email@empresa.com"
+                  placeholder="seu@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="pl-10"

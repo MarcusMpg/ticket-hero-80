@@ -230,12 +230,16 @@ serve(async (req) => {
     console.log('Usuário criado no Auth, id:', authData.user.id);
     console.log('Criando registro na tabela usuario');
 
+    // Gerar nome_usuario a partir do email (parte antes do @)
+    const nome_usuario = email.split('@')[0].toLowerCase();
+
     // Criar registro na tabela usuario
     const { data: usuarioData, error: createUsuarioError } = await supabaseAdmin
       .from('usuario')
       .insert({
         email,
         nome,
+        nome_usuario,
         tipo_usuario,
         id_filial,
         id_setor,
