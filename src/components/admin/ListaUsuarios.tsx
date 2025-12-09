@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { User, Mail, Building, Briefcase, Edit, Trash2, KeyRound } from "lucide-react";
+import { User, Mail, Building, Briefcase, Edit, Trash2, KeyRound, Filter } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface Usuario {
@@ -53,6 +53,8 @@ export const ListaUsuarios = ({ filiais = [], setores = [] }: ListaUsuariosProps
   });
   const [novaSenha, setNovaSenha] = useState("");
   const [redefinindoSenha, setRedefinindoSenha] = useState<Usuario | null>(null);
+  const [filtroFilial, setFiltroFilial] = useState<string>("all");
+  const [filtroSetor, setFiltroSetor] = useState<string>("all");
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -262,11 +264,57 @@ export const ListaUsuarios = ({ filiais = [], setores = [] }: ListaUsuariosProps
 
   const ehAdmin = user?.eh_admin;
 
+  const usuariosFiltrados = usuarios.filter((usuario) => {
+    const filialMatch = filtroFilial === "all" || usuario.id_filial.toString() === filtroFilial;
+    const setorMatch = filtroSetor === "all" || usuario.id_setor?.toString() === filtroSetor;
+    return filialMatch && setorMatch;
+  });
+
   return (
     <>
       <div className="space-y-4">
+        {/* Filtros */}
+        <div className="flex flex-col sm:flex-row gap-3 p-4 bg-muted/50 rounded-lg">
+          <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm font-medium">Filtros:</span>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-3 flex-1">
+            <div className="flex-1 min-w-[150px]">
+              <Select value={filtroFilial} onValueChange={setFiltroFilial}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Todas as filiais" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas as filiais</SelectItem>
+                  {filiais.map((filial) => (
+                    <SelectItem key={filial.id_filial} value={filial.id_filial.toString()}>
+                      {filial.nome_filial}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex-1 min-w-[150px]">
+              <Select value={filtroSetor} onValueChange={setFiltroSetor}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Todos os setores" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os setores</SelectItem>
+                  {setores.map((setor) => (
+                    <SelectItem key={setor.id_setor} value={setor.id_setor.toString()}>
+                      {setor.nome_setor}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
+
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {usuarios.map((usuario) => (
+          {usuariosFiltrados.map((usuario) => (
             <Card key={usuario.id_usuario} className="shadow-card hover:shadow-elevated transition-shadow">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between gap-2">
@@ -398,9 +446,11 @@ export const ListaUsuarios = ({ filiais = [], setores = [] }: ListaUsuariosProps
           ))}
         </div>
 
-        {usuarios.length === 0 && (
+        {usuariosFiltrados.length === 0 && (
           <div className="flex flex-col items-center justify-center py-12 text-center">
-            <p className="text-lg text-muted-foreground">Nenhum usuário cadastrado</p>
+            <p className="text-lg text-muted-foreground">
+              {usuarios.length === 0 ? "Nenhum usuário cadastrado" : "Nenhum usuário encontrado com os filtros selecionados"}
+            </p>
           </div>
         )}
       </div>
