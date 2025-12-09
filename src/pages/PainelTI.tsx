@@ -239,34 +239,11 @@ export default function PainelTI() {
         <Tabs defaultValue="chamados" className="w-full">
           <TabsList className="w-full sm:w-auto">
             <TabsTrigger value="chamados" className="flex-1 sm:flex-none">Fila de Chamados</TabsTrigger>
+            <TabsTrigger value="estatisticas" className="flex-1 sm:flex-none">Estatísticas</TabsTrigger>
             {user?.eh_admin && <TabsTrigger value="usuarios" className="flex-1 sm:flex-none">Usuários</TabsTrigger>}
           </TabsList>
 
           <TabsContent value="chamados" className="space-y-4">
-            {/* Estatísticas */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-              <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 text-center">
-                <p className="text-2xl font-bold text-blue-500">{chamados.filter(c => c.status === 'aberto').length}</p>
-                <p className="text-xs text-muted-foreground">Abertos</p>
-              </div>
-              <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3 text-center">
-                <p className="text-2xl font-bold text-yellow-500">{chamados.filter(c => c.status === 'em_andamento').length}</p>
-                <p className="text-xs text-muted-foreground">Em Andamento</p>
-              </div>
-              <div className="bg-orange-500/10 border border-orange-500/20 rounded-lg p-3 text-center">
-                <p className="text-2xl font-bold text-orange-500">{chamados.filter(c => c.status === 'aguardando').length}</p>
-                <p className="text-xs text-muted-foreground">Aguardando</p>
-              </div>
-              <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-3 text-center">
-                <p className="text-2xl font-bold text-green-500">{chamados.filter(c => c.status === 'concluido').length}</p>
-                <p className="text-xs text-muted-foreground">Concluídos</p>
-              </div>
-              <div className="bg-muted/50 border border-border rounded-lg p-3 text-center col-span-2 sm:col-span-1">
-                <p className="text-2xl font-bold">{chamados.length}</p>
-                <p className="text-xs text-muted-foreground">Total</p>
-              </div>
-            </div>
-
             <div>
               <h2 className="text-xl font-semibold mb-2">Fila de Chamados</h2>
               <p className="text-sm text-muted-foreground">Todos os chamados do sistema</p>
@@ -321,6 +298,70 @@ export default function PainelTI() {
                 ))}
               </div>
             )}
+          </TabsContent>
+
+          <TabsContent value="estatisticas" className="space-y-6">
+            <div>
+              <h2 className="text-xl font-semibold mb-2">Estatísticas</h2>
+              <p className="text-sm text-muted-foreground">Resumo dos chamados do sistema</p>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+              <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 text-center">
+                <p className="text-3xl font-bold text-blue-500">{chamados.filter(c => c.status === 'aberto').length}</p>
+                <p className="text-sm text-muted-foreground mt-1">Abertos</p>
+              </div>
+              <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4 text-center">
+                <p className="text-3xl font-bold text-yellow-500">{chamados.filter(c => c.status === 'em_andamento').length}</p>
+                <p className="text-sm text-muted-foreground mt-1">Em Andamento</p>
+              </div>
+              <div className="bg-orange-500/10 border border-orange-500/20 rounded-lg p-4 text-center">
+                <p className="text-3xl font-bold text-orange-500">{chamados.filter(c => c.status === 'aguardando').length}</p>
+                <p className="text-sm text-muted-foreground mt-1">Aguardando</p>
+              </div>
+              <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-4 text-center">
+                <p className="text-3xl font-bold text-green-500">{chamados.filter(c => c.status === 'concluido').length}</p>
+                <p className="text-sm text-muted-foreground mt-1">Concluídos</p>
+              </div>
+              <div className="bg-muted/50 border border-border rounded-lg p-4 text-center col-span-2 sm:col-span-1">
+                <p className="text-3xl font-bold">{chamados.length}</p>
+                <p className="text-sm text-muted-foreground mt-1">Total</p>
+              </div>
+            </div>
+
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div className="border border-border rounded-lg p-4">
+                <h3 className="font-semibold mb-3">Por Prioridade</h3>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-red-500">Alta</span>
+                    <span className="font-bold">{chamados.filter(c => c.prioridade === 'alta').length}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-yellow-500">Média</span>
+                    <span className="font-bold">{chamados.filter(c => c.prioridade === 'media').length}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-green-500">Baixa</span>
+                    <span className="font-bold">{chamados.filter(c => c.prioridade === 'baixa').length}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border border-border rounded-lg p-4">
+                <h3 className="font-semibold mb-3">Resumo</h3>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Sem atendente</span>
+                    <span className="font-bold">{chamados.filter(c => !c.id_atendente).length}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Em atendimento</span>
+                    <span className="font-bold">{chamados.filter(c => c.id_atendente).length}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </TabsContent>
 
           {user?.eh_admin && (
