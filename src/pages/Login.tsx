@@ -5,12 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Lock, User } from "lucide-react";
+import { Lock, Mail } from "lucide-react";
 
 export default function Login() {
-  const [nomeUsuario, setNomeUsuario] = useState("");
+  const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { login: loginFn, isAuthenticated, isLoading: authLoading, mustChangePassword } = useAuth();
@@ -37,24 +36,7 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      // Buscar o email real do usuário pelo nome de usuário
-      const { data: usuario, error: lookupError } = await supabase
-        .from('usuario')
-        .select('email')
-        .eq('nome_usuario', nomeUsuario.toLowerCase().trim())
-        .maybeSingle();
-
-      if (lookupError || !usuario) {
-        toast({
-          title: "Erro ao fazer login",
-          description: "Usuário não encontrado.",
-          variant: "destructive",
-        });
-        setIsLoading(false);
-        return;
-      }
-
-      const { error } = await loginFn(usuario.email, senha);
+      const { error } = await loginFn(email, senha);
 
       if (error) {
         toast({
@@ -95,15 +77,15 @@ export default function Login() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="nomeUsuario">Nome de Usuário</Label>
+              <Label htmlFor="email">E-mail</Label>
               <div className="relative">
-                <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
-                  id="nomeUsuario"
-                  type="text"
-                  placeholder="seu.usuario"
-                  value={nomeUsuario}
-                  onChange={(e) => setNomeUsuario(e.target.value)}
+                  id="email"
+                  type="email"
+                  placeholder="seu.email@empresa.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="pl-10"
                   required
                 />

@@ -31,7 +31,7 @@ export const CadastrarUsuarioDialog = ({ filiais, setores, onUsuarioCriado }: Ca
 
   const [formData, setFormData] = useState({
     nome: "",
-    nome_usuario: "",
+    email: "",
     senha: "",
     tipo_usuario: "SOLICITANTE",
     id_filial: "",
@@ -44,21 +44,10 @@ export const CadastrarUsuarioDialog = ({ filiais, setores, onUsuarioCriado }: Ca
 
     try {
       // Validações
-      if (!formData.nome || !formData.nome_usuario || !formData.senha || !formData.id_filial || !formData.id_setor) {
+      if (!formData.nome || !formData.email || !formData.senha || !formData.id_filial || !formData.id_setor) {
         toast({
           title: "Erro",
           description: "Por favor, preencha todos os campos obrigatórios.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Validar nome de usuário (sem espaços ou caracteres especiais)
-      const usernameRegex = /^[a-zA-Z0-9._-]+$/;
-      if (!usernameRegex.test(formData.nome_usuario)) {
-        toast({
-          title: "Erro",
-          description: "Nome de usuário deve conter apenas letras, números, pontos, hífens ou underscores.",
           variant: "destructive",
         });
         return;
@@ -76,7 +65,7 @@ export const CadastrarUsuarioDialog = ({ filiais, setores, onUsuarioCriado }: Ca
       // Criar usuário via edge function
       const { data, error } = await supabase.functions.invoke('criar-usuario', {
         body: {
-          nome_usuario: formData.nome_usuario.toLowerCase().trim(),
+          email: formData.email,
           password: formData.senha,
           nome: formData.nome,
           tipo_usuario: formData.tipo_usuario,
@@ -104,7 +93,7 @@ export const CadastrarUsuarioDialog = ({ filiais, setores, onUsuarioCriado }: Ca
 
       setFormData({
         nome: "",
-        nome_usuario: "",
+        email: "",
         senha: "",
         tipo_usuario: "SOLICITANTE",
         id_filial: "",
@@ -150,16 +139,15 @@ export const CadastrarUsuarioDialog = ({ filiais, setores, onUsuarioCriado }: Ca
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="nome_usuario">Nome de Usuário *</Label>
+            <Label htmlFor="email">E-mail *</Label>
             <Input
-              id="nome_usuario"
-              type="text"
-              value={formData.nome_usuario}
-              onChange={(e) => setFormData({ ...formData, nome_usuario: e.target.value })}
-              placeholder="nome.usuario"
+              id="email"
+              type="email"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              placeholder="usuario@email.com"
               required
             />
-            <p className="text-xs text-muted-foreground">Apenas letras, números, pontos, hífens ou underscores</p>
           </div>
 
           <div className="space-y-2">

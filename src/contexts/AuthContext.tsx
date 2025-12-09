@@ -5,7 +5,6 @@ import { Session, User as SupabaseUser } from '@supabase/supabase-js';
 export interface Usuario {
   id_usuario: number;
   nome: string;
-  nome_usuario: string;
   email: string;
   tipo_usuario: string;
   id_setor: number;
@@ -108,7 +107,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setUser({
         id_usuario: usuario.id_usuario,
         nome: usuario.nome,
-        nome_usuario: usuario.nome_usuario,
         email: usuario.email,
         tipo_usuario: usuario.tipo_usuario,
         id_setor: usuario.id_filial || 1,
@@ -153,9 +151,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const { data: usuarioData, error: usuarioError } = await supabase
         .from('usuario')
         .insert({
-          email: email,
+          email: userData.email,
           nome: userData.nome,
-          nome_usuario: userData.nome_usuario,
           tipo_usuario: userData.tipo_usuario,
           id_setor: userData.id_setor,
           id_filial: userData.id_filial,

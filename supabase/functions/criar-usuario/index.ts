@@ -159,30 +159,15 @@ serve(async (req) => {
       );
     }
 
-    // Dados do novo usuário (usando nome_usuario ao invés de email)
-    const { nome_usuario, password, nome, tipo_usuario, id_filial, id_setor } = await req.json();
+    // Dados do novo usuário
+    const { email, password, nome, tipo_usuario, id_filial, id_setor } = await req.json();
 
     // Validar dados
-    if (!nome_usuario || !password || !nome || !tipo_usuario || !id_filial || !id_setor) {
+    if (!email || !password || !nome || !tipo_usuario || !id_filial || !id_setor) {
       return new Response(
         JSON.stringify({
           success: false,
           error: 'Dados incompletos'
-        }),
-        {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 400,
-        }
-      );
-    }
-
-    // Validar formato do nome de usuário
-    const usernameRegex = /^[a-zA-Z0-9._-]+$/;
-    if (!usernameRegex.test(nome_usuario)) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: 'Nome de usuário deve conter apenas letras, números, pontos, hífens ou underscores'
         }),
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -204,34 +189,11 @@ serve(async (req) => {
       );
     }
 
-    // Verificar se nome de usuário já existe
-    const { data: existingUser } = await supabaseAdmin
-      .from('usuario')
-      .select('id_usuario')
-      .eq('nome_usuario', nome_usuario.toLowerCase())
-      .maybeSingle();
-
-    if (existingUser) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: 'Este nome de usuário já está em uso'
-        }),
-        {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 400,
-        }
-      );
-    }
-
-    // Gerar email interno a partir do nome de usuário
-    const internalEmail = `${nome_usuario.toLowerCase()}@internal.local`;
-
-    console.log('Criando usuário no Auth com email interno:', internalEmail);
+    console.log('Criando usuário no Auth com email:', email);
 
     // Criar usuário no Auth
     const { data: authData, error: createAuthError } = await supabaseAdmin.auth.admin.createUser({
-      email: internalEmail,
+      email,
       password,
       email_confirm: true,
     });
@@ -242,7 +204,7 @@ serve(async (req) => {
         JSON.stringify({
           success: false,
           error: createAuthError.message === 'A user with this email address has already been registered' 
-            ? 'Este nome de usuário já está cadastrado no sistema.' 
+            ? 'Este email já está cadastrado no sistema.' 
             : `Erro ao criar usuário: ${createAuthError.message}`
         }),
         {
@@ -272,8 +234,7 @@ serve(async (req) => {
     const { data: usuarioData, error: createUsuarioError } = await supabaseAdmin
       .from('usuario')
       .insert({
-        email: internalEmail,
-        nome_usuario: nome_usuario.toLowerCase(),
+        email,
         nome,
         tipo_usuario,
         id_filial,
@@ -350,7 +311,7 @@ serve(async (req) => {
         message: 'Usuário criado com sucesso',
         usuario: {
           id_usuario: usuarioData.id_usuario,
-          nome_usuario: nome_usuario.toLowerCase(),
+          email,
           nome,
         }
       }),
