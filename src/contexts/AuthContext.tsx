@@ -133,7 +133,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return { error };
   };
 
-  const signup = async (email: string, password: string, userData: Omit<Usuario, 'id_usuario'>) => {
+  const signup = async (email: string, password: string, userData: Omit<Usuario, 'id_usuario' | 'deve_trocar_senha'>) => {
     try {
       // Create auth user
       const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -147,16 +147,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (authError) return { error: authError };
       if (!authData.user) return { error: new Error('Failed to create user') };
 
+      // Generate nome_usuario from email
+      const nome_usuario = email.split('@')[0].toLowerCase();
+
       // Create usuario record
       const { data: usuarioData, error: usuarioError } = await supabase
         .from('usuario')
         .insert({
           email: userData.email,
           nome: userData.nome,
+          nome_usuario,
           tipo_usuario: userData.tipo_usuario,
           id_setor: userData.id_setor,
           id_filial: userData.id_filial,
-          senha_hash: 'supabase_auth', // Placeholder since we use Supabase auth
+          senha_hash: 'supabase_auth',
           ativo: userData.ativo
         })
         .select('id_usuario')
