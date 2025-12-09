@@ -2,3 +2,12 @@ project_id = "ojrqxpaiwksguurfzunh"
 
 [functions.deletar-usuario]
 verify_jwt = false
+
+[functions.criar-usuario]
+verify_jwt = false
+
+[functions.redefinir-senha]
+verify_jwt = false
+
+[functions.normalizar-usuario]
+verify_jwt = false
