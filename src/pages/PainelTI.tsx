@@ -159,7 +159,7 @@ export default function PainelTI() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [toast]);
 
   if (!isAuthorized) {
     return <Navigate to="/abrir-chamado" replace />;
