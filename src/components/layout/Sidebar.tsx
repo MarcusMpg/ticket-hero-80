@@ -1,4 +1,4 @@
-import { Home, Ticket, ClipboardList, Users } from "lucide-react";
+import { Home, Ticket, ClipboardList, Users, BarChart3 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -18,6 +18,7 @@ export const Sidebar = ({ onNavigate }: SidebarProps) => {
   const atendenteLinks = [
     { to: "/painel-ti", label: "Painel TI", icon: Home },
     { to: "/meus-atendimentos", label: "Meus Atendimentos", icon: Users },
+    { to: "/estatisticas", label: "Estatísticas", icon: BarChart3 },
   ];
 
   const links = (user?.eh_atendente || user?.eh_admin) ? atendenteLinks : solicitanteLinks;
