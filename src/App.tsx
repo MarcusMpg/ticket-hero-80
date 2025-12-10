@@ -13,6 +13,7 @@ import MeusChamados from "./pages/MeusChamados";
 import PainelTI from "./pages/PainelTI";
 import MeusAtendimentos from "./pages/MeusAtendimentos";
 import DetalheChamado from "./pages/DetalheChamado";
+import Estatisticas from "./pages/Estatisticas";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -33,6 +34,7 @@ const App = () => (
             <Route path="/meus-chamados" element={<ProtectedRoute><MeusChamados /></ProtectedRoute>} />
             <Route path="/painel-ti" element={<ProtectedRoute><PainelTI /></ProtectedRoute>} />
             <Route path="/meus-atendimentos" element={<ProtectedRoute><MeusAtendimentos /></ProtectedRoute>} />
+            <Route path="/estatisticas" element={<ProtectedRoute><Estatisticas /></ProtectedRoute>} />
             <Route path="/chamado/:id" element={<ProtectedRoute><DetalheChamado /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
