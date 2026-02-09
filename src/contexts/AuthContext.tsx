@@ -112,7 +112,7 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
         ativo: usuario.ativo,
         deve_trocar_senha: usuario.deve_trocar_senha ?? false,
         authId,
-        eh_atendente: tipoUpper === 'ATENDENTE' || tipoUpper === 'ADMIN',
+        eh_atendente: tipoUpper === 'ADMIN' || tipoUpper === 'USUARIO',
         eh_admin: tipoUpper === 'ADMIN',
         eh_diretor: tipoUpper === 'DIRETOR',
       });

@@ -239,8 +239,7 @@ export const ListaUsuarios = ({ filiais = [], setores = [] }: ListaUsuariosProps
   const getTipoLabel = (tipo: string) => {
     const tipos: Record<string, string> = {
       'ADMIN': 'Administrador',
-      'ATENDENTE': 'Atendente',
-      'SOLICITANTE': 'Solicitante',
+      'USUARIO': 'Usuário',
       'DIRETOR': 'Diretor',
     };
     return tipos[tipo] || tipo;
@@ -249,7 +248,6 @@ export const ListaUsuarios = ({ filiais = [], setores = [] }: ListaUsuariosProps
   const getTipoVariant = (tipo: string): "default" | "secondary" | "destructive" | "outline" => {
     if (tipo === 'ADMIN') return 'destructive';
     if (tipo === 'DIRETOR') return 'outline';
-    if (tipo === 'ATENDENTE') return 'default';
     return 'secondary';
   };
 
@@ -493,7 +491,7 @@ export const ListaUsuarios = ({ filiais = [], setores = [] }: ListaUsuariosProps
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ATENDENTE">Atendente</SelectItem>
+                  <SelectItem value="USUARIO">Usuário</SelectItem>
                   <SelectItem value="ADMIN">Administrador</SelectItem>
                   <SelectItem value="DIRETOR">Diretor</SelectItem>
                 </SelectContent>
