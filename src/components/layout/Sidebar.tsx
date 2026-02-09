@@ -1,4 +1,11 @@
-import { Home, Ticket, ClipboardList, Users, BarChart3, LayoutDashboard } from "lucide-react";
+import {
+  Home,
+  Ticket,
+  ClipboardList,
+  Users,
+  BarChart3,
+  LayoutDashboard,
+} from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -16,7 +23,7 @@ export const Sidebar = ({ onNavigate }: SidebarProps) => {
   ];
 
   const atendenteLinks = [
-    { to: "/painel-ti", label: "Painel TI", icon: Home },
+    { to: "/painel", label: "Painel", icon: Home },
     { to: "/meus-atendimentos", label: "Meus Atendimentos", icon: Users },
     { to: "/abrir-chamado", label: "Novo Chamado", icon: Ticket },
     { to: "/meus-chamados", label: "Meus Chamados", icon: ClipboardList },
@@ -33,7 +40,10 @@ export const Sidebar = ({ onNavigate }: SidebarProps) => {
 
   let links = solicitanteLinks;
   if (user?.eh_admin) {
-    links = [...atendenteLinks, { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard }];
+    links = [
+      ...atendenteLinks,
+      { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+    ];
   } else if (user?.eh_diretor) {
     links = diretorLinks;
   } else if (user?.eh_atendente) {
@@ -51,7 +61,8 @@ export const Sidebar = ({ onNavigate }: SidebarProps) => {
             className={({ isActive }) =>
               cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2 text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                isActive && "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                isActive &&
+                  "bg-sidebar-accent text-sidebar-accent-foreground font-medium",
               )
             }
           >
