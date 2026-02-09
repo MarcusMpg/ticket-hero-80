@@ -57,7 +57,8 @@ export type Database = {
           id_atendente: number | null
           id_chamado: number
           id_filial: number
-          id_setor: number
+          id_setor_destino: number
+          id_setor_origem: number
           id_solicitante: number
           prioridade: string
           status_chamado: string
@@ -70,7 +71,8 @@ export type Database = {
           id_atendente?: number | null
           id_chamado?: number
           id_filial: number
-          id_setor: number
+          id_setor_destino: number
+          id_setor_origem: number
           id_solicitante: number
           prioridade: string
           status_chamado: string
@@ -83,7 +85,8 @@ export type Database = {
           id_atendente?: number | null
           id_chamado?: number
           id_filial?: number
-          id_setor?: number
+          id_setor_destino?: number
+          id_setor_origem?: number
           id_solicitante?: number
           prioridade?: string
           status_chamado?: string
@@ -99,7 +102,14 @@ export type Database = {
           },
           {
             foreignKeyName: "chamados_id_setor_fkey"
-            columns: ["id_setor"]
+            columns: ["id_setor_destino"]
+            isOneToOne: false
+            referencedRelation: "setor"
+            referencedColumns: ["id_setor"]
+          },
+          {
+            foreignKeyName: "chamados_id_setor_origem_fkey"
+            columns: ["id_setor_origem"]
             isOneToOne: false
             referencedRelation: "setor"
             referencedColumns: ["id_setor"]
@@ -127,7 +137,7 @@ export type Database = {
           },
           {
             foreignKeyName: "fk_chamados_setor"
-            columns: ["id_setor"]
+            columns: ["id_setor_destino"]
             isOneToOne: false
             referencedRelation: "setor"
             referencedColumns: ["id_setor"]
