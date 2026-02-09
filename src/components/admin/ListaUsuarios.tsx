@@ -493,7 +493,6 @@ export const ListaUsuarios = ({ filiais = [], setores = [] }: ListaUsuariosProps
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="SOLICITANTE">Solicitante</SelectItem>
                   <SelectItem value="ATENDENTE">Atendente</SelectItem>
                   <SelectItem value="ADMIN">Administrador</SelectItem>
                   <SelectItem value="DIRETOR">Diretor</SelectItem>

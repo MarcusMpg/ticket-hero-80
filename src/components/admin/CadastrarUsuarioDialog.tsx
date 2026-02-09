@@ -33,7 +33,7 @@ export const CadastrarUsuarioDialog = ({ filiais, setores, onUsuarioCriado }: Ca
     nome: "",
     email: "",
     senha: "",
-    tipo_usuario: "SOLICITANTE",
+    tipo_usuario: "ATENDENTE",
     id_filial: "",
     id_setor: "",
   });
@@ -95,7 +95,7 @@ export const CadastrarUsuarioDialog = ({ filiais, setores, onUsuarioCriado }: Ca
         nome: "",
         email: "",
         senha: "",
-        tipo_usuario: "SOLICITANTE",
+        tipo_usuario: "ATENDENTE",
         id_filial: "",
         id_setor: "",
       });
@@ -173,7 +173,6 @@ export const CadastrarUsuarioDialog = ({ filiais, setores, onUsuarioCriado }: Ca
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="SOLICITANTE">Solicitante</SelectItem>
                 <SelectItem value="ATENDENTE">Atendente</SelectItem>
                 <SelectItem value="ADMIN">Administrador</SelectItem>
                 <SelectItem value="DIRETOR">Diretor</SelectItem>
