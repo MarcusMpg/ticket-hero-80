@@ -7,7 +7,7 @@ export interface Usuario {
   nome: string;
   email: string;
   tipo_usuario: string;
-  id_setor: number;
+  id_setor: number | null;
   id_filial: number;
   ativo: boolean;
   deve_trocar_senha: boolean;
@@ -17,6 +17,7 @@ export interface User extends Usuario {
   authId: string;
   eh_atendente: boolean;
   eh_admin: boolean;
+  eh_diretor: boolean;
 }
 
 interface AuthContextType {
@@ -41,11 +42,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => {
     setIsLoading(true);
 
-    // Listen for auth changes FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       if (session) {
-        // Defer Supabase calls to avoid deadlocks in the callback
         setTimeout(() => {
           loadUserData(session.user.id);
         }, 0);
@@ -55,7 +54,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
     });
 
-    // Then check active session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (session) {
@@ -74,7 +72,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       setIsLoading(true);
       
-      // Get profile with usuario data
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('id_usuario')
@@ -92,7 +89,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return;
       }
 
-      // Get usuario data
       const { data: usuario, error: usuarioError } = await supabase
         .from('usuario')
         .select('*')
@@ -104,18 +100,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         throw usuarioError;
       }
 
+      const tipoUpper = usuario.tipo_usuario?.toUpperCase();
+
       setUser({
         id_usuario: usuario.id_usuario,
         nome: usuario.nome,
         email: usuario.email,
         tipo_usuario: usuario.tipo_usuario,
-        id_setor: usuario.id_filial || 1,
+        id_setor: usuario.id_setor ?? null,
         id_filial: usuario.id_filial,
         ativo: usuario.ativo,
         deve_trocar_senha: usuario.deve_trocar_senha ?? false,
         authId,
-        eh_atendente: usuario.tipo_usuario === 'atendente' || usuario.tipo_usuario === 'ATENDENTE',
-        eh_admin: usuario.tipo_usuario === 'ADMIN' || usuario.tipo_usuario === 'admin'
+        eh_atendente: tipoUpper === 'ATENDENTE' || tipoUpper === 'ADMIN',
+        eh_admin: tipoUpper === 'ADMIN',
+        eh_diretor: tipoUpper === 'DIRETOR',
       });
     } catch (error) {
       console.error('Error loading user data:', error);
@@ -126,31 +125,23 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const login = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     return { error };
   };
 
   const signup = async (email: string, password: string, userData: Omit<Usuario, 'id_usuario' | 'deve_trocar_senha'>) => {
     try {
-      // Create auth user
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/`,
-        }
+        options: { emailRedirectTo: `${window.location.origin}/` },
       });
 
       if (authError) return { error: authError };
       if (!authData.user) return { error: new Error('Failed to create user') };
 
-      // Generate nome_usuario from email
       const nome_usuario = email.split('@')[0].toLowerCase();
 
-      // Create usuario record
       const { data: usuarioData, error: usuarioError } = await supabase
         .from('usuario')
         .insert({
@@ -161,14 +152,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           id_setor: userData.id_setor,
           id_filial: userData.id_filial,
           senha_hash: 'supabase_auth',
-          ativo: userData.ativo
+          ativo: userData.ativo,
         })
         .select('id_usuario')
         .single();
 
       if (usuarioError) return { error: usuarioError };
 
-      // Link profile to usuario
       const { error: profileError } = await supabase
         .from('profiles')
         .update({ id_usuario: usuarioData.id_usuario })

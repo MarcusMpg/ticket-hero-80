@@ -1,4 +1,4 @@
-import { Home, Ticket, ClipboardList, Users, BarChart3 } from "lucide-react";
+import { Home, Ticket, ClipboardList, Users, BarChart3, LayoutDashboard } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -18,10 +18,27 @@ export const Sidebar = ({ onNavigate }: SidebarProps) => {
   const atendenteLinks = [
     { to: "/painel-ti", label: "Painel TI", icon: Home },
     { to: "/meus-atendimentos", label: "Meus Atendimentos", icon: Users },
+    { to: "/abrir-chamado", label: "Novo Chamado", icon: Ticket },
+    { to: "/meus-chamados", label: "Meus Chamados", icon: ClipboardList },
     { to: "/estatisticas", label: "Estatísticas", icon: BarChart3 },
   ];
 
-  const links = (user?.eh_atendente || user?.eh_admin) ? atendenteLinks : solicitanteLinks;
+  const diretorLinks = [
+    { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { to: "/painel-ti", label: "Todos Chamados", icon: Home },
+    { to: "/abrir-chamado", label: "Novo Chamado", icon: Ticket },
+    { to: "/meus-chamados", label: "Meus Chamados", icon: ClipboardList },
+    { to: "/estatisticas", label: "Estatísticas", icon: BarChart3 },
+  ];
+
+  let links = solicitanteLinks;
+  if (user?.eh_admin) {
+    links = [...atendenteLinks, { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard }];
+  } else if (user?.eh_diretor) {
+    links = diretorLinks;
+  } else if (user?.eh_atendente) {
+    links = atendenteLinks;
+  }
 
   return (
     <aside className="fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 border-r bg-sidebar">

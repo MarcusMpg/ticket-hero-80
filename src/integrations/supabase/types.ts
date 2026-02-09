@@ -52,6 +52,7 @@ export type Database = {
       chamados: {
         Row: {
           data_abertura: string | null
+          data_assumido: string | null
           data_fechamento: string | null
           descricao: string
           id_atendente: number | null
@@ -63,9 +64,11 @@ export type Database = {
           prioridade: string
           status_chamado: string
           titulo: string
+          ultima_atualizacao: string | null
         }
         Insert: {
           data_abertura?: string | null
+          data_assumido?: string | null
           data_fechamento?: string | null
           descricao: string
           id_atendente?: number | null
@@ -77,9 +80,11 @@ export type Database = {
           prioridade: string
           status_chamado: string
           titulo: string
+          ultima_atualizacao?: string | null
         }
         Update: {
           data_abertura?: string | null
+          data_assumido?: string | null
           data_fechamento?: string | null
           descricao?: string
           id_atendente?: number | null
@@ -91,6 +96,7 @@ export type Database = {
           prioridade?: string
           status_chamado?: string
           titulo?: string
+          ultima_atualizacao?: string | null
         }
         Relationships: [
           {

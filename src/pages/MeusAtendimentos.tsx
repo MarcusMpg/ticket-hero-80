@@ -6,6 +6,7 @@ import { Chamado } from "@/types/chamado";
 import { Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { mapChamado, CHAMADOS_SELECT } from "@/hooks/useChamados";
 
 export default function MeusAtendimentos() {
   const [chamados, setChamados] = useState<Chamado[]>([]);
@@ -21,32 +22,12 @@ export default function MeusAtendimentos() {
       try {
         const { data, error } = await supabase
           .from('chamados')
-          .select(`
-            *,
-            solicitante:usuario!fk_chamados_id_solicitante_cascade(nome),
-            atendente:usuario!fk_chamados_id_atendente_setnull(nome)
-          `)
+          .select(CHAMADOS_SELECT)
           .eq('id_atendente', user.id_usuario)
           .order('data_abertura', { ascending: false });
 
         if (error) throw error;
-
-        const chamadosMapeados: Chamado[] = (data || []).map((item: any) => ({
-          id_chamado: item.id_chamado,
-          titulo: item.titulo,
-          descricao: item.descricao,
-          status: item.status_chamado.toLowerCase() as any,
-          prioridade: item.prioridade.toLowerCase() as any,
-          id_solicitante: item.id_solicitante,
-          id_atendente: item.id_atendente,
-          id_setor_destino: item.id_setor,
-          data_abertura: item.data_abertura,
-          data_fechamento: item.data_fechamento,
-          solicitante_nome: item.solicitante?.nome,
-          atendente_nome: item.atendente?.nome,
-        }));
-
-        setChamados(chamadosMapeados);
+        setChamados((data || []).map(mapChamado));
         setIsInitialLoad(false);
       } catch (error) {
         console.error("Erro ao carregar atendimentos:", error);
@@ -59,78 +40,34 @@ export default function MeusAtendimentos() {
 
     if (!user) return;
 
-    // Configurar realtime para atualizar atendimentos em tempo real
     const channel = supabase
       .channel('meus-atendimentos')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'chamados',
-          filter: `id_atendente=eq.${user.id_usuario}`
-        },
-        async (payload) => {
-          // Recarregar chamados quando houver mudanças
-          const { data, error } = await supabase
-            .from('chamados')
-            .select(`
-              *,
-              solicitante:usuario!fk_chamados_id_solicitante_cascade(nome),
-              atendente:usuario!fk_chamados_id_atendente_setnull(nome)
-            `)
-            .eq('id_atendente', user.id_usuario)
-            .order('data_abertura', { ascending: false });
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'chamados', filter: `id_atendente=eq.${user.id_usuario}` }, async (payload) => {
+        const { data, error } = await supabase
+          .from('chamados')
+          .select(CHAMADOS_SELECT)
+          .eq('id_atendente', user.id_usuario)
+          .order('data_abertura', { ascending: false });
 
-          if (!error && data) {
-            const chamadosMapeados: Chamado[] = data.map((item: any) => ({
-              id_chamado: item.id_chamado,
-              titulo: item.titulo,
-              descricao: item.descricao,
-              status: item.status_chamado.toLowerCase() as any,
-              prioridade: item.prioridade.toLowerCase() as any,
-              id_solicitante: item.id_solicitante,
-              id_atendente: item.id_atendente,
-              id_setor_destino: item.id_setor,
-              data_abertura: item.data_abertura,
-              data_fechamento: item.data_fechamento,
-              solicitante_nome: item.solicitante?.nome,
-              atendente_nome: item.atendente?.nome,
-            }));
-            setChamados(chamadosMapeados);
-
-            // Mostrar notificação apenas após carga inicial
-            if (!isInitialLoad) {
-              if (payload.eventType === 'INSERT') {
-                toast({
-                  title: "Novo atendimento",
-                  description: "Um novo chamado foi atribuído a você",
-                });
-              } else if (payload.eventType === 'UPDATE') {
-                toast({
-                  title: "Atendimento atualizado",
-                  description: "Um dos seus atendimentos foi atualizado",
-                });
-              } else if (payload.eventType === 'DELETE') {
-                toast({
-                  title: "Atendimento removido",
-                  description: "Um atendimento foi removido",
-                });
-              }
-            }
+        if (!error && data) {
+          setChamados(data.map(mapChamado));
+          if (!isInitialLoad) {
+            const messages: Record<string, { title: string; description: string }> = {
+              INSERT: { title: "Novo atendimento", description: "Um novo chamado foi atribuído a você" },
+              UPDATE: { title: "Atendimento atualizado", description: "Um dos seus atendimentos foi atualizado" },
+              DELETE: { title: "Atendimento removido", description: "Um atendimento foi removido" },
+            };
+            const msg = messages[payload.eventType];
+            if (msg) toast(msg);
           }
         }
-      )
+      })
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => { supabase.removeChannel(channel); };
   }, [user]);
 
-  if (!user?.eh_atendente) {
-    return <Navigate to="/abrir-chamado" replace />;
-  }
+  if (!user?.eh_atendente) return <Navigate to="/abrir-chamado" replace />;
 
   if (isLoading) {
     return (

@@ -10,21 +10,23 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { Chamado, Interacao } from "@/types/chamado";
-import { ArrowLeft, User, Clock, MessageSquare, Trash2, Paperclip, Download } from "lucide-react";
+import { ArrowLeft, User, Clock, MessageSquare, Trash2, Paperclip, Download, ArrowRightLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { mapChamado, CHAMADOS_SELECT } from "@/hooks/useChamados";
 
-const statusConfig = {
-  aberto: { label: "Aberto", variant: "info" as const },
-  em_andamento: { label: "Em Andamento", variant: "warning" as const },
-  aguardando: { label: "Aguardando", variant: "secondary" as const },
-  concluido: { label: "Concluído", variant: "success" as const },
-  fechado: { label: "Fechado", variant: "default" as const },
+const statusConfig: Record<string, { label: string; variant: "info" | "warning" | "secondary" | "success" | "destructive" | "default" }> = {
+  aberto: { label: "Aberto", variant: "info" },
+  em_andamento: { label: "Em Andamento", variant: "warning" },
+  aguardando: { label: "Aguardando", variant: "secondary" },
+  concluido: { label: "Concluído", variant: "success" },
+  cancelado: { label: "Cancelado", variant: "destructive" },
+  fechado: { label: "Fechado", variant: "default" },
 };
 
-const prioridadeConfig = {
-  baixa: { label: "Baixa", variant: "default" as const },
-  media: { label: "Média", variant: "warning" as const },
-  alta: { label: "Alta", variant: "destructive" as const },
+const prioridadeConfig: Record<string, { label: string; variant: "default" | "warning" | "destructive" }> = {
+  baixa: { label: "Baixa", variant: "default" },
+  media: { label: "Média", variant: "warning" },
+  alta: { label: "Alta", variant: "destructive" },
 };
 
 export default function DetalheChamado() {
@@ -41,306 +43,119 @@ export default function DetalheChamado() {
   const [isLoading, setIsLoading] = useState(true);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
 
+  const loadChamado = async () => {
+    if (!id) return null;
+    const { data, error } = await supabase
+      .from('chamados')
+      .select(CHAMADOS_SELECT)
+      .eq('id_chamado', Number(id))
+      .single();
+    if (error) throw error;
+    return mapChamado(data);
+  };
+
+  const loadInteracoes = async () => {
+    if (!id) return [];
+    const { data, error } = await supabase
+      .from('interacao')
+      .select('*, usuario(nome)')
+      .eq('id_chamado', Number(id))
+      .order('data_interacao', { ascending: true });
+    if (error) throw error;
+    return (data || []).map((item: any): Interacao => ({
+      id_interacao: item.id_interacao,
+      id_chamado: item.id_chamado,
+      id_funcionario: item.id_usuario,
+      tipo_interacao: item.tipo_interacao,
+      mensagem: item.conteudo,
+      data_interacao: item.data_interacao,
+      funcionario_nome: item.usuario?.nome,
+    }));
+  };
+
   useEffect(() => {
-    const fetchChamado = async () => {
-      if (!id) return;
-      
+    const fetchAll = async () => {
       try {
-        // Fetch chamado
-        const { data: chamadoData, error: chamadoError } = await supabase
-          .from('chamados')
-          .select(`
-            *,
-            solicitante:usuario!fk_chamados_id_solicitante_cascade(nome),
-            atendente:usuario!fk_chamados_id_atendente_setnull(nome)
-          `)
-          .eq('id_chamado', Number(id))
-          .single();
+        const [chamadoData, interacoesData, anexosRes] = await Promise.all([
+          loadChamado(),
+          loadInteracoes(),
+          supabase.from('chamadoanexo').select('*').eq('id_chamado', Number(id)).order('data_upload', { ascending: true }),
+        ]);
 
-        if (chamadoError) throw chamadoError;
-
-        const normalize = (s: string | null | undefined) =>
-          s ? s.toString().toLowerCase().replace(/\s+/g, "_") : "";
-
-        const statusNorm = normalize(chamadoData.status_chamado) as Chamado["status"];
-        const prioridadeNorm = normalize(chamadoData.prioridade) as Chamado["prioridade"];
-
-        const chamadoMapeado: Chamado = {
-          id_chamado: chamadoData.id_chamado,
-          titulo: chamadoData.titulo,
-          descricao: chamadoData.descricao,
-          status: statusNorm,
-          prioridade: prioridadeNorm,
-          id_solicitante: chamadoData.id_solicitante,
-          id_atendente: chamadoData.id_atendente,
-          id_setor_destino: chamadoData.id_setor,
-          data_abertura: chamadoData.data_abertura,
-          data_fechamento: chamadoData.data_fechamento,
-          solicitante_nome: (chamadoData.solicitante as any)?.[0]?.nome,
-          atendente_nome: (chamadoData.atendente as any)?.[0]?.nome,
-        };
-
-        setChamado(chamadoMapeado);
-        setNovoStatus(chamadoMapeado.status);
-
-        // Fetch anexos
-        const { data: anexosData, error: anexosError } = await supabase
-          .from('chamadoanexo')
-          .select('*')
-          .eq('id_chamado', Number(id))
-          .order('data_upload', { ascending: true });
-
-        if (anexosError) throw anexosError;
-        setAnexos(anexosData || []);
-
-        // Fetch interacoes
-        const { data: interacoesData, error: interacoesError } = await supabase
-          .from('interacao')
-          .select(`
-            *,
-            usuario(nome)
-          `)
-          .eq('id_chamado', Number(id))
-          .order('data_interacao', { ascending: true });
-
-        if (interacoesError) throw interacoesError;
-
-        const interacoesMapeadas: Interacao[] = (interacoesData || []).map((item: any) => ({
-          id_interacao: item.id_interacao,
-          id_chamado: item.id_chamado,
-          id_funcionario: item.id_usuario,
-          tipo_interacao: item.tipo_interacao as any,
-          mensagem: item.conteudo,
-          data_interacao: item.data_interacao,
-          funcionario_nome: item.usuario?.nome,
-        }));
-
-        setInteracoes(interacoesMapeadas);
+        setChamado(chamadoData);
+        setNovoStatus(chamadoData?.status || "");
+        setInteracoes(interacoesData);
+        setAnexos(anexosRes.data || []);
         setIsInitialLoad(false);
       } catch (error: any) {
         console.error("Erro ao carregar chamado:", error);
-        toast({
-          title: "Erro",
-          description: error.message || "Não foi possível carregar os detalhes do chamado.",
-          variant: "destructive",
-        });
+        toast({ title: "Erro", description: error.message || "Não foi possível carregar os detalhes.", variant: "destructive" });
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchChamado();
+    fetchAll();
 
     if (!id) return;
 
-    // Configurar realtime para atualizar chamado e interações em tempo real
-    const chamadoChannel = supabase
+    const channel = supabase
       .channel(`chamado-${id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'chamados',
-          filter: `id_chamado=eq.${id}`
-        },
-        async (payload) => {
-          // Recarregar chamado quando houver mudanças
-          const { data, error } = await supabase
-            .from('chamados')
-            .select(`
-              *,
-              solicitante:usuario!fk_chamados_id_solicitante_cascade(nome),
-              atendente:usuario!fk_chamados_id_atendente_setnull(nome)
-            `)
-            .eq('id_chamado', Number(id))
-            .single();
-
-          if (!error && data) {
-            const normalize = (s: string | null | undefined) =>
-              s ? s.toString().toLowerCase().replace(/\s+/g, "_") : "";
-
-            const statusNorm = normalize(data.status_chamado) as Chamado["status"];
-            const prioridadeNorm = normalize(data.prioridade) as Chamado["prioridade"];
-
-            const chamadoMapeado: Chamado = {
-              id_chamado: data.id_chamado,
-              titulo: data.titulo,
-              descricao: data.descricao,
-              status: statusNorm,
-              prioridade: prioridadeNorm,
-              id_solicitante: data.id_solicitante,
-              id_atendente: data.id_atendente,
-              id_setor_destino: data.id_setor,
-              data_abertura: data.data_abertura,
-              data_fechamento: data.data_fechamento,
-              solicitante_nome: (data.solicitante as any)?.[0]?.nome,
-              atendente_nome: (data.atendente as any)?.[0]?.nome,
-            };
-
-            setChamado(chamadoMapeado);
-            setNovoStatus(chamadoMapeado.status);
-
-            // Mostrar notificação apenas após carga inicial
-            if (!isInitialLoad && payload.eventType === 'UPDATE') {
-              toast({
-                title: "Chamado atualizado",
-                description: "Este chamado foi atualizado",
-              });
-            }
-          }
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'interacao',
-          filter: `id_chamado=eq.${id}`
-        },
-        async (payload) => {
-          // Recarregar interações quando houver mudanças
-          const { data, error } = await supabase
-            .from('interacao')
-            .select(`
-              *,
-              usuario(nome)
-            `)
-            .eq('id_chamado', Number(id))
-            .order('data_interacao', { ascending: true });
-
-          if (!error && data) {
-            const interacoesMapeadas: Interacao[] = data.map((item: any) => ({
-              id_interacao: item.id_interacao,
-              id_chamado: item.id_chamado,
-              id_funcionario: item.id_usuario,
-              tipo_interacao: item.tipo_interacao as any,
-              mensagem: item.conteudo,
-              data_interacao: item.data_interacao,
-              funcionario_nome: item.usuario?.nome,
-            }));
-
-            setInteracoes(interacoesMapeadas);
-
-            // Mostrar notificação apenas após carga inicial e para novos comentários
-            if (!isInitialLoad && payload.eventType === 'INSERT') {
-              toast({
-                title: "Nova interação",
-                description: "Um novo comentário foi adicionado",
-              });
-            }
-          }
-        }
-      )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'chamados', filter: `id_chamado=eq.${id}` }, async (payload) => {
+        try {
+          const c = await loadChamado();
+          if (c) { setChamado(c); setNovoStatus(c.status); }
+          if (!isInitialLoad && payload.eventType === 'UPDATE') toast({ title: "Chamado atualizado", description: "Este chamado foi atualizado" });
+        } catch {}
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'interacao', filter: `id_chamado=eq.${id}` }, async (payload) => {
+        try {
+          const i = await loadInteracoes();
+          setInteracoes(i);
+          if (!isInitialLoad && payload.eventType === 'INSERT') toast({ title: "Nova interação", description: "Um novo comentário foi adicionado" });
+        } catch {}
+      })
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(chamadoChannel);
-    };
+    return () => { supabase.removeChannel(channel); };
   }, [id, toast]);
 
   const handleAdicionarComentario = async () => {
     if (!novoComentario.trim() || !user) return;
-
     try {
-      const { data, error } = await supabase
-        .from('interacao')
-        .insert({
-          id_chamado: Number(id),
-          id_usuario: user.id_usuario,
-          tipo_interacao: 'COMENTARIO',
-          conteudo: novoComentario,
-        })
-        .select(`
-          *,
-          usuario(nome)
-        `)
-        .single();
-
-      if (error) throw error;
-
-      const novaInteracao: Interacao = {
-        id_interacao: data.id_interacao,
-        id_chamado: data.id_chamado,
-        id_funcionario: data.id_usuario,
-        tipo_interacao: data.tipo_interacao as any,
-        mensagem: data.conteudo,
-        data_interacao: data.data_interacao,
-        funcionario_nome: (data as any).usuario?.nome,
-      };
-
-      setInteracoes([...interacoes, novaInteracao]);
+      await supabase.from('interacao').insert({
+        id_chamado: Number(id),
+        id_usuario: user.id_usuario,
+        tipo_interacao: 'COMENTARIO',
+        conteudo: novoComentario,
+      });
       setNovoComentario("");
-
-      toast({
-        title: "Comentário adicionado",
-        description: "Seu comentário foi registrado com sucesso.",
-      });
+      toast({ title: "Comentário adicionado", description: "Seu comentário foi registrado." });
     } catch (error: any) {
-      toast({
-        title: "Erro",
-        description: error.message || "Não foi possível adicionar o comentário.",
-        variant: "destructive",
-      });
+      toast({ title: "Erro", description: error.message, variant: "destructive" });
     }
   };
 
   const handleAssumirChamado = async () => {
     if (!user) return;
-    
     try {
       const { error } = await supabase
         .from('chamados')
-        .update({
-          id_atendente: user.id_usuario,
-          status_chamado: 'EM_ANDAMENTO',
-        })
+        .update({ id_atendente: user.id_usuario, status_chamado: 'EM_ANDAMENTO' })
         .eq('id_chamado', Number(id));
-
       if (error) throw error;
-
-      if (chamado) {
-        setChamado({
-          ...chamado,
-          id_atendente: user.id_usuario,
-          atendente_nome: user.nome,
-          status: "em_andamento",
-        });
-        setNovoStatus("em_andamento");
-      }
-
-      toast({
-        title: "Chamado assumido",
-        description: "Você agora é o responsável por este chamado.",
-      });
+      toast({ title: "Chamado assumido", description: "Você agora é o responsável." });
     } catch (error: any) {
-      toast({
-        title: "Erro",
-        description: error.message || "Não foi possível assumir o chamado.",
-        variant: "destructive",
-      });
+      toast({ title: "Erro", description: error.message, variant: "destructive" });
     }
   };
 
   const handleMudarStatus = async () => {
     if (novoStatus === chamado?.status) return;
-
-    // Verificar se é aguardando e se tem justificativa
-    if (novoStatus === 'aguardando' && !justificativa.trim()) {
+    if ((novoStatus === 'aguardando' || novoStatus === 'concluido') && !justificativa.trim()) {
       toast({
-        title: "Justificativa obrigatória",
-        description: "Você deve fornecer uma justificativa ao colocar o chamado em 'Aguardando'.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Verificar se é concluído e se tem comentário de conclusão
-    if (novoStatus === 'concluido' && !justificativa.trim()) {
-      toast({
-        title: "Comentário de conclusão obrigatório",
-        description: "Você deve fornecer um comentário de conclusão ao finalizar o chamado.",
+        title: novoStatus === 'aguardando' ? "Justificativa obrigatória" : "Comentário de conclusão obrigatório",
+        description: novoStatus === 'aguardando' ? "Forneça uma justificativa." : "Forneça um comentário de conclusão.",
         variant: "destructive",
       });
       return;
@@ -351,98 +166,41 @@ export default function DetalheChamado() {
         .from('chamados')
         .update({ status_chamado: novoStatus.toUpperCase() })
         .eq('id_chamado', Number(id));
-
       if (error) throw error;
 
-      // Se for aguardando ou concluído, registrar a justificativa/conclusão como interação
       if ((novoStatus === 'aguardando' || novoStatus === 'concluido') && user) {
-        const tipoMensagem = novoStatus === 'aguardando' 
-          ? `Status alterado para AGUARDANDO. Justificativa: ${justificativa}`
-          : `Chamado CONCLUÍDO. Resolução: ${justificativa}`;
-
-        const { data: interacaoData, error: interacaoError } = await supabase
-          .from('interacao')
-          .insert({
-            id_chamado: Number(id),
-            id_usuario: user.id_usuario,
-            tipo_interacao: 'MUDANCA_STATUS',
-            conteudo: tipoMensagem,
-          })
-          .select(`
-            *,
-            usuario(nome)
-          `)
-          .single();
-
-        if (interacaoError) throw interacaoError;
-
-        const novaInteracao: Interacao = {
-          id_interacao: interacaoData.id_interacao,
-          id_chamado: interacaoData.id_chamado,
-          id_funcionario: interacaoData.id_usuario,
-          tipo_interacao: interacaoData.tipo_interacao as any,
-          mensagem: interacaoData.conteudo,
-          data_interacao: interacaoData.data_interacao,
-          funcionario_nome: (interacaoData as any).usuario?.nome,
-        };
-
-        setInteracoes([...interacoes, novaInteracao]);
+        await supabase.from('interacao').insert({
+          id_chamado: Number(id),
+          id_usuario: user.id_usuario,
+          tipo_interacao: 'MUDANCA_STATUS',
+          conteudo: novoStatus === 'aguardando'
+            ? `Status alterado para AGUARDANDO. Justificativa: ${justificativa}`
+            : `Chamado CONCLUÍDO. Resolução: ${justificativa}`,
+        });
         setJustificativa("");
       }
 
-      if (chamado) {
-        setChamado({
-          ...chamado,
-          status: novoStatus as Chamado['status'],
-        });
-      }
-
-      toast({
-        title: "Status atualizado",
-        description: "O status do chamado foi alterado.",
-      });
+      toast({ title: "Status atualizado", description: "O status do chamado foi alterado." });
     } catch (error: any) {
-      toast({
-        title: "Erro",
-        description: error.message || "Não foi possível atualizar o status.",
-        variant: "destructive",
-      });
+      toast({ title: "Erro", description: error.message, variant: "destructive" });
     }
   };
 
   const handleDeletarChamado = async () => {
     try {
-      const { error } = await supabase
-        .from('chamados')
-        .delete()
-        .eq('id_chamado', Number(id));
-
+      const { error } = await supabase.from('chamados').delete().eq('id_chamado', Number(id));
       if (error) throw error;
-
-      toast({
-        title: "Chamado deletado",
-        description: "O chamado foi removido com sucesso.",
-      });
-
-      // Redirecionar para a lista de chamados
+      toast({ title: "Chamado deletado", description: "O chamado foi removido." });
       navigate(ehAtendente ? '/painel-ti' : '/meus-chamados');
     } catch (error: any) {
-      toast({
-        title: "Erro",
-        description: error.message || "Não foi possível deletar o chamado.",
-        variant: "destructive",
-      });
+      toast({ title: "Erro", description: error.message, variant: "destructive" });
     }
   };
 
   const handleDownloadAnexo = async (anexo: any) => {
     try {
-      const { data, error } = await supabase.storage
-        .from('chamado-anexos')
-        .download(anexo.caminho_servidor);
-
+      const { data, error } = await supabase.storage.from('chamado-anexos').download(anexo.caminho_servidor);
       if (error) throw error;
-
       const url = URL.createObjectURL(data);
       const a = document.createElement('a');
       a.href = url;
@@ -452,21 +210,13 @@ export default function DetalheChamado() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     } catch (error: any) {
-      toast({
-        title: "Erro",
-        description: error.message || "Não foi possível baixar o arquivo.",
-        variant: "destructive",
-      });
+      toast({ title: "Erro", description: error.message, variant: "destructive" });
     }
   };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString("pt-BR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
+      day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit",
     });
   };
 
@@ -488,10 +238,7 @@ export default function DetalheChamado() {
       <MainLayout>
         <div className="flex flex-col items-center justify-center py-12">
           <p className="text-lg text-muted-foreground mb-4">Chamado não encontrado</p>
-          <Button onClick={() => navigate(-1)}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Voltar
-          </Button>
+          <Button onClick={() => navigate(-1)}><ArrowLeft className="mr-2 h-4 w-4" />Voltar</Button>
         </div>
       </MainLayout>
     );
@@ -500,6 +247,8 @@ export default function DetalheChamado() {
   const ehAtendente = user?.eh_atendente || user?.eh_admin;
   const ehSolicitante = user?.id_usuario === chamado.id_solicitante;
   const podeDeletear = user?.eh_admin || (ehSolicitante && chamado.status === 'aberto');
+  const statusInfo = statusConfig[chamado.status] || statusConfig.aberto;
+  const prioridadeInfo = prioridadeConfig[chamado.prioridade] || prioridadeConfig.baixa;
 
   return (
     <MainLayout>
@@ -527,15 +276,11 @@ export default function DetalheChamado() {
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Tem certeza que deseja deletar este chamado? Esta ação não pode ser desfeita.
-                  </AlertDialogDescription>
+                  <AlertDialogDescription>Tem certeza que deseja deletar este chamado? Esta ação não pode ser desfeita.</AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDeletarChamado}>
-                    Deletar
-                  </AlertDialogAction>
+                  <AlertDialogAction onClick={handleDeletarChamado}>Deletar</AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
@@ -545,9 +290,7 @@ export default function DetalheChamado() {
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2 space-y-6 order-2 lg:order-1">
             <Card className="shadow-card">
-              <CardHeader>
-                <CardTitle>Descrição</CardTitle>
-              </CardHeader>
+              <CardHeader><CardTitle>Descrição</CardTitle></CardHeader>
               <CardContent>
                 <p className="text-foreground whitespace-pre-wrap">{chamado.descricao}</p>
               </CardContent>
@@ -557,26 +300,18 @@ export default function DetalheChamado() {
               <Card className="shadow-card">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Paperclip className="h-5 w-5" />
-                    Anexos ({anexos.length})
+                    <Paperclip className="h-5 w-5" />Anexos ({anexos.length})
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
                     {anexos.map((anexo) => (
-                      <div
-                        key={anexo.id_anexo}
-                        className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent transition-colors"
-                      >
+                      <div key={anexo.id_anexo} className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent transition-colors">
                         <div className="flex items-center gap-2 flex-1 min-w-0">
                           <Paperclip className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                           <span className="text-sm truncate">{anexo.nome_original}</span>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDownloadAnexo(anexo)}
-                        >
+                        <Button variant="ghost" size="sm" onClick={() => handleDownloadAnexo(anexo)}>
                           <Download className="h-4 w-4" />
                         </Button>
                       </div>
@@ -586,27 +321,51 @@ export default function DetalheChamado() {
               </Card>
             )}
 
+            {/* Timeline de Interações */}
             <Card className="shadow-card">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <MessageSquare className="h-5 w-5" />
-                  Histórico de Interações
+                  <MessageSquare className="h-5 w-5" />Histórico de Interações
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {interacoes.map((interacao) => (
-                  <div key={interacao.id_interacao} className="border-l-2 border-primary pl-4 py-2">
-                    <div className="flex items-center gap-2 mb-1">
-                      <User className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-medium text-sm">{interacao.funcionario_nome}</span>
-                      <span className="text-xs text-muted-foreground">•</span>
-                      <span className="text-xs text-muted-foreground">
-                        {formatDate(interacao.data_interacao)}
-                      </span>
+                {interacoes.length === 0 && (
+                  <p className="text-sm text-muted-foreground text-center py-4">Nenhuma interação registrada.</p>
+                )}
+                {interacoes.map((interacao) => {
+                  const isMudancaStatus = interacao.tipo_interacao === 'MUDANCA_STATUS' || interacao.tipo_interacao === 'mudanca_status';
+                  const isAtribuicao = interacao.tipo_interacao === 'atribuicao';
+                  const isSystem = isMudancaStatus || isAtribuicao;
+
+                  return (
+                    <div
+                      key={interacao.id_interacao}
+                      className={`pl-4 py-3 rounded-r-lg ${
+                        isSystem
+                          ? 'border-l-2 border-warning bg-warning/5'
+                          : 'border-l-2 border-primary'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        {isSystem ? (
+                          <ArrowRightLeft className="h-4 w-4 text-warning" />
+                        ) : (
+                          <User className="h-4 w-4 text-muted-foreground" />
+                        )}
+                        <span className="font-medium text-sm">{interacao.funcionario_nome}</span>
+                        {isSystem && (
+                          <Badge variant="warning" className="text-xs">Sistema</Badge>
+                        )}
+                        <span className="text-xs text-muted-foreground">
+                          {formatDate(interacao.data_interacao)}
+                        </span>
+                      </div>
+                      <p className={`text-sm ${isSystem ? 'italic text-muted-foreground' : ''}`}>
+                        {interacao.mensagem}
+                      </p>
                     </div>
-                    <p className="text-sm">{interacao.mensagem}</p>
-                  </div>
-                ))}
+                  );
+                })}
 
                 <div className="pt-4 space-y-2">
                   <Textarea
@@ -615,10 +374,10 @@ export default function DetalheChamado() {
                     onChange={(e) => setNovoComentario(e.target.value)}
                     rows={3}
                     className="text-sm"
+                    maxLength={2000}
                   />
                   <Button onClick={handleAdicionarComentario} disabled={!novoComentario.trim()} className="w-full sm:w-auto">
-                    <MessageSquare className="h-4 w-4 mr-2" />
-                    Adicionar Comentário
+                    <MessageSquare className="h-4 w-4 mr-2" />Adicionar Comentário
                   </Button>
                 </div>
               </CardContent>
@@ -627,36 +386,38 @@ export default function DetalheChamado() {
 
           <div className="space-y-6 order-1 lg:order-2">
             <Card className="shadow-card">
-              <CardHeader>
-                <CardTitle>Informações</CardTitle>
-              </CardHeader>
-                 <CardContent className="space-y-4 text-sm">
+              <CardHeader><CardTitle>Informações</CardTitle></CardHeader>
+              <CardContent className="space-y-4 text-sm">
                 <div>
                   <p className="text-muted-foreground mb-1">Status</p>
-                  <Badge variant={statusConfig[chamado.status].variant}>
-                    {statusConfig[chamado.status].label}
-                  </Badge>
+                  <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>
                 </div>
-
                 <div>
                   <p className="text-muted-foreground mb-1">Prioridade</p>
-                  <Badge variant={prioridadeConfig[chamado.prioridade].variant}>
-                    {prioridadeConfig[chamado.prioridade].label}
-                  </Badge>
+                  <Badge variant={prioridadeInfo.variant}>{prioridadeInfo.label}</Badge>
                 </div>
-
                 <div>
                   <p className="text-muted-foreground mb-1">Solicitante</p>
                   <p className="font-medium">{chamado.solicitante_nome}</p>
                 </div>
-
                 {chamado.atendente_nome && (
                   <div>
                     <p className="text-muted-foreground mb-1">Atendente</p>
                     <p className="font-medium">{chamado.atendente_nome}</p>
                   </div>
                 )}
-
+                {chamado.setor_origem_nome && (
+                  <div>
+                    <p className="text-muted-foreground mb-1">Setor Origem</p>
+                    <p className="font-medium">{chamado.setor_origem_nome}</p>
+                  </div>
+                )}
+                {chamado.setor_destino_nome && (
+                  <div>
+                    <p className="text-muted-foreground mb-1">Setor Destino</p>
+                    <p className="font-medium">{chamado.setor_destino_nome}</p>
+                  </div>
+                )}
                 <div>
                   <p className="text-muted-foreground mb-1">Data de Abertura</p>
                   <div className="flex items-center gap-1">
@@ -664,7 +425,15 @@ export default function DetalheChamado() {
                     <span className="text-xs sm:text-sm">{formatDate(chamado.data_abertura)}</span>
                   </div>
                 </div>
-
+                {chamado.data_assumido && (
+                  <div>
+                    <p className="text-muted-foreground mb-1">Data Assumido</p>
+                    <div className="flex items-center gap-1">
+                      <Clock className="h-4 w-4" />
+                      <span className="text-xs sm:text-sm">{formatDate(chamado.data_assumido)}</span>
+                    </div>
+                  </div>
+                )}
                 {chamado.data_fechamento && (
                   <div>
                     <p className="text-muted-foreground mb-1">Data de Fechamento</p>
@@ -679,37 +448,22 @@ export default function DetalheChamado() {
 
             {ehAtendente && (
               <Card className="shadow-card">
-                <CardHeader>
-                  <CardTitle>Ações do Atendente</CardTitle>
-                </CardHeader>
+                <CardHeader><CardTitle>Ações do Atendente</CardTitle></CardHeader>
                 <CardContent className="space-y-3">
                   {!chamado.id_atendente && (
-                    <Button className="w-full" onClick={handleAssumirChamado} size="sm">
-                      Assumir Chamado
-                    </Button>
+                    <Button className="w-full" onClick={handleAssumirChamado} size="sm">Assumir Chamado</Button>
                   )}
-
                   <div className="space-y-2">
                     <p className="text-sm font-medium">Alterar Status</p>
                     <Select value={novoStatus} onValueChange={setNovoStatus}>
-                      <SelectTrigger className="text-sm">
-                        <SelectValue />
-                      </SelectTrigger>
+                      <SelectTrigger className="text-sm"><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        {novoStatus === "concluido" || chamado.status === "concluido" ? (
-                          <>
-                            <SelectItem value="concluido">Concluído</SelectItem>
-                            <SelectItem value="fechado">Fechado</SelectItem>
-                          </>
-                        ) : (
-                          <>
-                            <SelectItem value="aberto">Aberto</SelectItem>
-                            <SelectItem value="em_andamento">Em Andamento</SelectItem>
-                            <SelectItem value="aguardando">Aguardando</SelectItem>
-                            <SelectItem value="concluido">Concluído</SelectItem>
-                            <SelectItem value="fechado">Fechado</SelectItem>
-                          </>
-                        )}
+                        <SelectItem value="aberto">Aberto</SelectItem>
+                        <SelectItem value="em_andamento">Em Andamento</SelectItem>
+                        <SelectItem value="aguardando">Aguardando</SelectItem>
+                        <SelectItem value="concluido">Concluído</SelectItem>
+                        <SelectItem value="cancelado">Cancelado</SelectItem>
+                        <SelectItem value="fechado">Fechado</SelectItem>
                       </SelectContent>
                     </Select>
                     
@@ -719,9 +473,7 @@ export default function DetalheChamado() {
                           {novoStatus === 'aguardando' ? 'Justificativa (obrigatória)' : 'Comentário de conclusão (obrigatório)'}
                         </label>
                         <Textarea
-                          placeholder={novoStatus === 'aguardando' 
-                            ? "Descreva o motivo por estar aguardando..." 
-                            : "Descreva a resolução do chamado..."}
+                          placeholder={novoStatus === 'aguardando' ? "Descreva o motivo..." : "Descreva a resolução..."}
                           value={justificativa}
                           onChange={(e) => setJustificativa(e.target.value)}
                           rows={3}
@@ -730,13 +482,7 @@ export default function DetalheChamado() {
                       </div>
                     )}
                     
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      size="sm"
-                      onClick={handleMudarStatus}
-                      disabled={novoStatus === chamado.status}
-                    >
+                    <Button variant="outline" className="w-full" size="sm" onClick={handleMudarStatus} disabled={novoStatus === chamado.status}>
                       Atualizar Status
                     </Button>
                   </div>
