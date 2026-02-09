@@ -12,18 +12,19 @@ interface ChamadoCardProps {
   isAtendente?: boolean;
 }
 
-const statusConfig = {
-  aberto: { label: "Aberto", variant: "info" as const },
-  em_andamento: { label: "Em Andamento", variant: "warning" as const },
-  aguardando: { label: "Aguardando", variant: "secondary" as const },
-  concluido: { label: "Concluído", variant: "success" as const },
-  fechado: { label: "Fechado", variant: "default" as const },
+const statusConfig: Record<string, { label: string; variant: "info" | "warning" | "secondary" | "success" | "destructive" | "default" }> = {
+  aberto: { label: "Aberto", variant: "info" },
+  em_andamento: { label: "Em Andamento", variant: "warning" },
+  aguardando: { label: "Aguardando", variant: "secondary" },
+  concluido: { label: "Concluído", variant: "success" },
+  cancelado: { label: "Cancelado", variant: "destructive" },
+  fechado: { label: "Fechado", variant: "default" },
 };
 
-const prioridadeConfig = {
-  baixa: { label: "Baixa", variant: "default" as const },
-  media: { label: "Média", variant: "warning" as const },
-  alta: { label: "Alta", variant: "destructive" as const },
+const prioridadeConfig: Record<string, { label: string; variant: "default" | "warning" | "destructive" }> = {
+  baixa: { label: "Baixa", variant: "default" },
+  media: { label: "Média", variant: "warning" },
+  alta: { label: "Alta", variant: "destructive" },
 };
 
 export const ChamadoCard = ({ 
@@ -51,6 +52,9 @@ export const ChamadoCard = ({
     });
   };
 
+  const statusInfo = statusConfig[chamado.status] || statusConfig.aberto;
+  const prioridadeInfo = prioridadeConfig[chamado.prioridade] || prioridadeConfig.baixa;
+
   return (
     <Card className="shadow-card hover:shadow-elevated transition-shadow cursor-pointer" onClick={() => navigate(`/chamado/${chamado.id_chamado}`)}>
       <CardHeader className="pb-3">
@@ -59,21 +63,29 @@ export const ChamadoCard = ({
             <h3 className="font-semibold text-base sm:text-lg truncate">{chamado.titulo}</h3>
             <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{chamado.descricao}</p>
           </div>
-          <Badge variant={prioridadeConfig[chamado.prioridade].variant} className="shrink-0">
-            {prioridadeConfig[chamado.prioridade].label}
+          <Badge variant={prioridadeInfo.variant} className="shrink-0">
+            {prioridadeInfo.label}
           </Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-sm">
-          <Badge variant={statusConfig[chamado.status].variant}>
-            {statusConfig[chamado.status].label}
+          <Badge variant={statusInfo.variant}>
+            {statusInfo.label}
           </Badge>
           <div className="flex items-center gap-1 text-muted-foreground text-xs sm:text-sm">
             <Clock className="h-4 w-4" />
             <span className="truncate">{formatDate(chamado.data_abertura)}</span>
           </div>
         </div>
+
+        {(chamado.setor_origem_nome || chamado.setor_destino_nome) && (
+          <div className="text-xs text-muted-foreground">
+            {chamado.setor_origem_nome && <span>{chamado.setor_origem_nome}</span>}
+            {chamado.setor_origem_nome && chamado.setor_destino_nome && <span> → </span>}
+            {chamado.setor_destino_nome && <span className="font-medium">{chamado.setor_destino_nome}</span>}
+          </div>
+        )}
 
         {showAtendente && (
           <div className="flex items-center gap-2 text-sm text-muted-foreground">

@@ -4,38 +4,25 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Chamado } from "@/types/chamado";
+import { mapChamado, CHAMADOS_SELECT } from "@/hooks/useChamados";
 
 export default function Estatisticas() {
   const [chamados, setChamados] = useState<Chamado[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
 
-  const isAuthorized = user?.eh_atendente || user?.eh_admin;
+  const isAuthorized = user?.eh_atendente || user?.eh_admin || user?.eh_diretor;
 
   useEffect(() => {
     const fetchChamados = async () => {
       try {
         const { data, error } = await supabase
           .from('chamados')
-          .select('*')
+          .select(CHAMADOS_SELECT)
           .order('data_abertura', { ascending: false });
 
         if (error) throw error;
-
-        const chamadosMapeados: Chamado[] = (data || []).map((item: any) => ({
-          id_chamado: item.id_chamado,
-          titulo: item.titulo,
-          descricao: item.descricao,
-          status: item.status_chamado.toLowerCase() as any,
-          prioridade: item.prioridade.toLowerCase() as any,
-          id_solicitante: item.id_solicitante,
-          id_atendente: item.id_atendente,
-          id_setor_destino: item.id_setor,
-          data_abertura: item.data_abertura,
-          data_fechamento: item.data_fechamento,
-        }));
-
-        setChamados(chamadosMapeados);
+        setChamados((data || []).map(mapChamado));
       } catch (error) {
         console.error("Erro ao carregar chamados:", error);
       } finally {
@@ -45,24 +32,15 @@ export default function Estatisticas() {
 
     fetchChamados();
 
-    // Realtime subscription
     const channel = supabase
       .channel('estatisticas-chamados')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'chamados' },
-        () => fetchChamados()
-      )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'chamados' }, () => fetchChamados())
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
-  if (!isAuthorized) {
-    return <Navigate to="/abrir-chamado" replace />;
-  }
+  if (!isAuthorized) return <Navigate to="/abrir-chamado" replace />;
 
   if (isLoading) {
     return (
@@ -86,20 +64,20 @@ export default function Estatisticas() {
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-          <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 text-center">
-            <p className="text-3xl font-bold text-blue-500">{chamados.filter(c => c.status === 'aberto').length}</p>
+          <div className="bg-info/10 border border-info/20 rounded-lg p-4 text-center">
+            <p className="text-3xl font-bold text-info">{chamados.filter(c => c.status === 'aberto').length}</p>
             <p className="text-sm text-muted-foreground mt-1">Abertos</p>
           </div>
-          <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4 text-center">
-            <p className="text-3xl font-bold text-yellow-500">{chamados.filter(c => c.status === 'em_andamento').length}</p>
+          <div className="bg-warning/10 border border-warning/20 rounded-lg p-4 text-center">
+            <p className="text-3xl font-bold text-warning">{chamados.filter(c => c.status === 'em_andamento').length}</p>
             <p className="text-sm text-muted-foreground mt-1">Em Andamento</p>
           </div>
-          <div className="bg-orange-500/10 border border-orange-500/20 rounded-lg p-4 text-center">
-            <p className="text-3xl font-bold text-orange-500">{chamados.filter(c => c.status === 'aguardando').length}</p>
+          <div className="bg-secondary/50 border border-border rounded-lg p-4 text-center">
+            <p className="text-3xl font-bold">{chamados.filter(c => c.status === 'aguardando').length}</p>
             <p className="text-sm text-muted-foreground mt-1">Aguardando</p>
           </div>
-          <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-4 text-center">
-            <p className="text-3xl font-bold text-green-500">{chamados.filter(c => c.status === 'concluido').length}</p>
+          <div className="bg-success/10 border border-success/20 rounded-lg p-4 text-center">
+            <p className="text-3xl font-bold text-success">{chamados.filter(c => c.status === 'concluido').length}</p>
             <p className="text-sm text-muted-foreground mt-1">Concluídos</p>
           </div>
           <div className="bg-muted/50 border border-border rounded-lg p-4 text-center col-span-2 sm:col-span-1">
@@ -113,15 +91,15 @@ export default function Estatisticas() {
             <h3 className="font-semibold mb-3">Por Prioridade</h3>
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <span className="text-red-500">Alta</span>
+                <span className="text-destructive">Alta</span>
                 <span className="font-bold">{chamados.filter(c => c.prioridade === 'alta').length}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-yellow-500">Média</span>
+                <span className="text-warning">Média</span>
                 <span className="font-bold">{chamados.filter(c => c.prioridade === 'media').length}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-green-500">Baixa</span>
+                <span className="text-success">Baixa</span>
                 <span className="font-bold">{chamados.filter(c => c.prioridade === 'baixa').length}</span>
               </div>
             </div>
@@ -137,6 +115,10 @@ export default function Estatisticas() {
               <div className="flex justify-between items-center">
                 <span className="text-muted-foreground">Em atendimento</span>
                 <span className="font-bold">{chamados.filter(c => c.id_atendente).length}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Cancelados</span>
+                <span className="font-bold">{chamados.filter(c => c.status === 'cancelado').length}</span>
               </div>
             </div>
           </div>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,20 +13,60 @@ import { Ticket, Paperclip, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { enviarNotificacaoNovoChamado } from "@/services/emailService";
 
+interface Setor {
+  id_setor: number;
+  nome_setor: string;
+}
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
 export default function AbrirChamado() {
   const [titulo, setTitulo] = useState("");
   const [descricao, setDescricao] = useState("");
-  const [prioridade, setPrioridade] = useState("baixa");
+  const [prioridade, setPrioridade] = useState("BAIXA");
+  const [setorDestino, setSetorDestino] = useState("");
+  const [setores, setSetores] = useState<Setor[]>([]);
+  const [setorOrigemNome, setSetorOrigemNome] = useState("");
   const [anexos, setAnexos] = useState<File[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  useEffect(() => {
+    const fetchSetores = async () => {
+      const { data, error } = await supabase
+        .from('setor')
+        .select('*')
+        .order('nome_setor');
+
+      if (!error && data) {
+        setSetores(data);
+        // Encontrar nome do setor de origem do usuário
+        if (user?.id_setor) {
+          const setorOrigem = data.find(s => s.id_setor === user.id_setor);
+          if (setorOrigem) setSetorOrigemNome(setorOrigem.nome_setor);
+        }
+      }
+    };
+    fetchSetores();
+  }, [user?.id_setor]);
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const newFiles = Array.from(e.target.files);
-      setAnexos([...anexos, ...newFiles]);
+      const oversized = newFiles.filter(f => f.size > MAX_FILE_SIZE);
+      if (oversized.length > 0) {
+        toast({
+          title: "Arquivo muito grande",
+          description: `Máximo permitido: 5MB por arquivo. Arquivos rejeitados: ${oversized.map(f => f.name).join(', ')}`,
+          variant: "destructive",
+        });
+        const valid = newFiles.filter(f => f.size <= MAX_FILE_SIZE);
+        setAnexos([...anexos, ...valid]);
+      } else {
+        setAnexos([...anexos, ...newFiles]);
+      }
     }
   };
 
@@ -34,23 +74,38 @@ export default function AbrirChamado() {
     setAnexos(anexos.filter((_, i) => i !== index));
   };
 
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
+
+    if (!setorDestino) {
+      toast({
+        title: "Setor destino obrigatório",
+        description: "Selecione o setor para o qual deseja enviar o chamado.",
+        variant: "destructive",
+      });
+      return;
+    }
     
     setIsLoading(true);
 
     try {
-      // Criar o chamado primeiro
       const { data: chamadoData, error: chamadoError } = await supabase
         .from('chamados')
         .insert({
           titulo,
           descricao,
-          prioridade: prioridade.toUpperCase(),
+          prioridade,
           status_chamado: 'ABERTO',
           id_solicitante: user.id_usuario,
-          id_setor: 1,
+          id_setor_origem: user.id_setor || 1,
+          id_setor_destino: Number(setorDestino),
           id_filial: user.id_filial,
         })
         .select()
@@ -58,11 +113,10 @@ export default function AbrirChamado() {
 
       if (chamadoError) throw chamadoError;
 
-      // Upload dos anexos se houver
+      // Upload dos anexos
       if (anexos.length > 0 && chamadoData) {
         for (const arquivo of anexos) {
-          const fileExt = arquivo.name.split('.').pop();
-          const fileName = `${chamadoData.id_chamado}/${Date.now()}.${fileExt}`;
+          const fileName = `${chamadoData.id_chamado}/${arquivo.name}`;
           
           const { error: uploadError } = await supabase.storage
             .from('chamado-anexos')
@@ -70,7 +124,6 @@ export default function AbrirChamado() {
 
           if (uploadError) throw uploadError;
 
-          // Registrar anexo na tabela
           const { error: anexoError } = await supabase
             .from('chamadoanexo')
             .insert({
@@ -84,13 +137,12 @@ export default function AbrirChamado() {
         }
       }
 
-      // Enviar notificação por email para o email fixo do TI
       await enviarNotificacaoNovoChamado({
         to_email: "chamados.feirao@outlook.com",
         to_name: "Equipe TI",
         chamado_titulo: titulo,
         chamado_descricao: descricao.substring(0, 200),
-        chamado_prioridade: prioridade.toUpperCase(),
+        chamado_prioridade: prioridade,
         solicitante_nome: user.nome,
       });
 
@@ -139,6 +191,7 @@ export default function AbrirChamado() {
                   value={titulo}
                   onChange={(e) => setTitulo(e.target.value)}
                   required
+                  maxLength={200}
                 />
               </div>
 
@@ -151,7 +204,31 @@ export default function AbrirChamado() {
                   onChange={(e) => setDescricao(e.target.value)}
                   rows={6}
                   required
+                  maxLength={2000}
                 />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Setor de Origem</Label>
+                  <Input value={setorOrigemNome || "Não definido"} disabled className="bg-muted" />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="setor-destino">Setor Destino *</Label>
+                  <Select value={setorDestino} onValueChange={setSetorDestino}>
+                    <SelectTrigger id="setor-destino">
+                      <SelectValue placeholder="Selecione o setor" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {setores.map((setor) => (
+                        <SelectItem key={setor.id_setor} value={String(setor.id_setor)}>
+                          {setor.nome_setor}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -169,7 +246,7 @@ export default function AbrirChamado() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="anexos">Anexos</Label>
+                <Label htmlFor="anexos">Anexos <span className="text-muted-foreground text-xs">(máx. 5MB por arquivo)</span></Label>
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center gap-2">
                     <Input
@@ -185,7 +262,10 @@ export default function AbrirChamado() {
                     <div className="space-y-2">
                       {anexos.map((file, index) => (
                         <div key={index} className="flex items-center justify-between p-2 bg-muted rounded-md">
-                          <span className="text-sm truncate flex-1">{file.name}</span>
+                          <div className="flex-1 min-w-0">
+                            <span className="text-sm truncate block">{file.name}</span>
+                            <span className="text-xs text-muted-foreground">{formatFileSize(file.size)}</span>
+                          </div>
                           <Button
                             type="button"
                             variant="ghost"
