@@ -8,7 +8,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CadastrarUsuarioDialog } from "@/components/admin/CadastrarUsuarioDialog";
 import { ListaUsuarios } from "@/components/admin/ListaUsuarios";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { mapChamado, CHAMADOS_SELECT } from "@/hooks/useChamados";
 
@@ -34,15 +40,15 @@ export default function PainelTI() {
   const [filtroSetorOrigem, setFiltroSetorOrigem] = useState<string>("all");
   const [filtroSetorDestino, setFiltroSetorDestino] = useState<string>("all");
   const isInitialLoadRef = useRef(true);
-  
+
   const isAuthorized = user?.eh_atendente || user?.eh_admin || user?.eh_diretor;
 
   const fetchChamados = async () => {
     try {
       const { data, error } = await supabase
-        .from('chamados')
+        .from("chamados")
         .select(CHAMADOS_SELECT)
-        .order('data_abertura', { ascending: false });
+        .order("data_abertura", { ascending: false });
 
       if (error) throw error;
       setChamados((data || []).map(mapChamado));
@@ -57,8 +63,8 @@ export default function PainelTI() {
       await fetchChamados();
 
       const [filiaisRes, setoresRes] = await Promise.all([
-        supabase.from('filial').select('*').order('nome_filial'),
-        supabase.from('setor').select('*').order('nome_setor'),
+        supabase.from("filial").select("*").order("nome_filial"),
+        supabase.from("setor").select("*").order("nome_setor"),
       ]);
 
       if (filiaisRes.data) setFiliais(filiaisRes.data);
@@ -69,22 +75,40 @@ export default function PainelTI() {
     fetchData();
 
     const channel = supabase
-      .channel('painel-ti-chamados')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'chamados' }, async (payload) => {
-        await fetchChamados();
-        if (!isInitialLoadRef.current) {
-          const messages: Record<string, { title: string; description: string }> = {
-            INSERT: { title: "Novo chamado", description: "Um novo chamado foi adicionado à fila" },
-            UPDATE: { title: "Chamado atualizado", description: "Um chamado foi atualizado" },
-            DELETE: { title: "Chamado removido", description: "Um chamado foi removido da fila" },
-          };
-          const msg = messages[payload.eventType];
-          if (msg) toast(msg);
-        }
-      })
+      .channel("painel-ti-chamados")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "chamados" },
+        async (payload) => {
+          await fetchChamados();
+          if (!isInitialLoadRef.current) {
+            const messages: Record<
+              string,
+              { title: string; description: string }
+            > = {
+              INSERT: {
+                title: "Novo chamado",
+                description: "Um novo chamado foi adicionado à fila",
+              },
+              UPDATE: {
+                title: "Chamado atualizado",
+                description: "Um chamado foi atualizado",
+              },
+              DELETE: {
+                title: "Chamado removido",
+                description: "Um chamado foi removido da fila",
+              },
+            };
+            const msg = messages[payload.eventType];
+            if (msg) toast(msg);
+          }
+        },
+      )
       .subscribe();
 
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [toast]);
 
   if (!isAuthorized) return <Navigate to="/abrir-chamado" replace />;
@@ -95,7 +119,9 @@ export default function PainelTI() {
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
             <div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto"></div>
-            <p className="text-muted-foreground">Carregando fila de chamados...</p>
+            <p className="text-muted-foreground">
+              Carregando fila de chamados...
+            </p>
           </div>
         </div>
       </MainLayout>
@@ -107,16 +133,19 @@ export default function PainelTI() {
   const handleAssumirChamado = async (chamadoId: number) => {
     try {
       const { error } = await supabase
-        .from('chamados')
-        .update({ id_atendente: user?.id_usuario, status_chamado: 'EM_ANDAMENTO' })
-        .eq('id_chamado', chamadoId);
+        .from("chamados")
+        .update({
+          id_atendente: user?.id_usuario,
+          status_chamado: "EM_ANDAMENTO",
+        })
+        .eq("id_chamado", chamadoId);
 
       if (error) throw error;
 
-      await supabase.from('interacao').insert({
+      await supabase.from("interacao").insert({
         id_chamado: chamadoId,
         id_usuario: user?.id_usuario,
-        tipo_interacao: 'atribuicao',
+        tipo_interacao: "atribuicao",
         conteudo: `Chamado assumido por ${user?.nome}`,
       });
 
@@ -124,45 +153,75 @@ export default function PainelTI() {
       await fetchChamados();
     } catch (error) {
       console.error("Erro ao assumir chamado:", error);
-      toast({ title: "Erro", description: "Não foi possível assumir o chamado", variant: "destructive" });
+      toast({
+        title: "Erro",
+        description: "Não foi possível assumir o chamado",
+        variant: "destructive",
+      });
     }
   };
 
   const chamadosFiltrados = chamados.filter((chamado) => {
-    if (filtroPrioridade !== "all" && chamado.prioridade !== filtroPrioridade) return false;
+    if (filtroPrioridade !== "all" && chamado.prioridade !== filtroPrioridade)
+      return false;
     if (filtroStatus !== "all" && chamado.status !== filtroStatus) return false;
-    if (filtroSetorOrigem !== "all" && String(chamado.id_setor_origem) !== filtroSetorOrigem) return false;
-    if (filtroSetorDestino !== "all" && String(chamado.id_setor_destino) !== filtroSetorDestino) return false;
+    if (
+      filtroSetorOrigem !== "all" &&
+      String(chamado.id_setor_origem) !== filtroSetorOrigem
+    )
+      return false;
+    if (
+      filtroSetorDestino !== "all" &&
+      String(chamado.id_setor_destino) !== filtroSetorDestino
+    )
+      return false;
     return true;
   });
 
   // Para atendentes: filtrar por setor do atendente
-  const chamadosMeuSetor = chamados.filter(c => c.id_setor_destino === user?.id_setor);
+  const chamadosMeuSetor = chamados.filter(
+    (c) => c.id_setor_destino === user?.id_setor,
+  );
 
   return (
     <MainLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold">Painel TI</h1>
-          <p className="text-sm sm:text-base text-muted-foreground">Gerenciamento de chamados e usuários</p>
+          <h1 className="text-2xl sm:text-3xl font-bold">Painel</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
+            Gerenciamento de chamados e usuários
+          </p>
         </div>
 
         <Tabs defaultValue="chamados" className="w-full">
           <TabsList className="w-full sm:w-auto flex-wrap">
             <TabsTrigger value="chamados" className="flex-1 sm:flex-none">
-              {user?.eh_diretor || user?.eh_admin ? "Todos Chamados" : "Meu Setor"}
+              {user?.eh_diretor || user?.eh_admin
+                ? "Todos Chamados"
+                : "Meu Setor"}
             </TabsTrigger>
-            {(user?.eh_atendente && !user?.eh_admin && !user?.eh_diretor) && (
-              <TabsTrigger value="todos" className="flex-1 sm:flex-none">Todos</TabsTrigger>
+            {user?.eh_atendente && !user?.eh_admin && !user?.eh_diretor && (
+              <TabsTrigger value="todos" className="flex-1 sm:flex-none">
+                Todos
+              </TabsTrigger>
             )}
-            {user?.eh_admin && <TabsTrigger value="usuarios" className="flex-1 sm:flex-none">Usuários</TabsTrigger>}
+            {user?.eh_admin && (
+              <TabsTrigger value="usuarios" className="flex-1 sm:flex-none">
+                Usuários
+              </TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="chamados" className="space-y-4">
             {/* Filtros */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              <Select value={filtroPrioridade} onValueChange={setFiltroPrioridade}>
-                <SelectTrigger className="text-sm"><SelectValue placeholder="Prioridade" /></SelectTrigger>
+              <Select
+                value={filtroPrioridade}
+                onValueChange={setFiltroPrioridade}
+              >
+                <SelectTrigger className="text-sm">
+                  <SelectValue placeholder="Prioridade" />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todas Prioridades</SelectItem>
                   <SelectItem value="baixa">Baixa</SelectItem>
@@ -171,7 +230,9 @@ export default function PainelTI() {
                 </SelectContent>
               </Select>
               <Select value={filtroStatus} onValueChange={setFiltroStatus}>
-                <SelectTrigger className="text-sm"><SelectValue placeholder="Status" /></SelectTrigger>
+                <SelectTrigger className="text-sm">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos Status</SelectItem>
                   <SelectItem value="aberto">Aberto</SelectItem>
@@ -183,21 +244,35 @@ export default function PainelTI() {
               </Select>
               {(user?.eh_diretor || user?.eh_admin) && (
                 <>
-                  <Select value={filtroSetorOrigem} onValueChange={setFiltroSetorOrigem}>
-                    <SelectTrigger className="text-sm"><SelectValue placeholder="Setor Origem" /></SelectTrigger>
+                  <Select
+                    value={filtroSetorOrigem}
+                    onValueChange={setFiltroSetorOrigem}
+                  >
+                    <SelectTrigger className="text-sm">
+                      <SelectValue placeholder="Setor Origem" />
+                    </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos Origens</SelectItem>
-                      {setores.map(s => (
-                        <SelectItem key={s.id_setor} value={String(s.id_setor)}>{s.nome_setor}</SelectItem>
+                      {setores.map((s) => (
+                        <SelectItem key={s.id_setor} value={String(s.id_setor)}>
+                          {s.nome_setor}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                  <Select value={filtroSetorDestino} onValueChange={setFiltroSetorDestino}>
-                    <SelectTrigger className="text-sm"><SelectValue placeholder="Setor Destino" /></SelectTrigger>
+                  <Select
+                    value={filtroSetorDestino}
+                    onValueChange={setFiltroSetorDestino}
+                  >
+                    <SelectTrigger className="text-sm">
+                      <SelectValue placeholder="Setor Destino" />
+                    </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos Destinos</SelectItem>
-                      {setores.map(s => (
-                        <SelectItem key={s.id_setor} value={String(s.id_setor)}>{s.nome_setor}</SelectItem>
+                      {setores.map((s) => (
+                        <SelectItem key={s.id_setor} value={String(s.id_setor)}>
+                          {s.nome_setor}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -206,22 +281,32 @@ export default function PainelTI() {
             </div>
 
             {(() => {
-              const list = (user?.eh_diretor || user?.eh_admin) ? chamadosFiltrados : chamadosMeuSetor.filter(c => {
-                if (filtroPrioridade !== "all" && c.prioridade !== filtroPrioridade) return false;
-                if (filtroStatus !== "all" && c.status !== filtroStatus) return false;
-                return true;
-              });
+              const list =
+                user?.eh_diretor || user?.eh_admin
+                  ? chamadosFiltrados
+                  : chamadosMeuSetor.filter((c) => {
+                      if (
+                        filtroPrioridade !== "all" &&
+                        c.prioridade !== filtroPrioridade
+                      )
+                        return false;
+                      if (filtroStatus !== "all" && c.status !== filtroStatus)
+                        return false;
+                      return true;
+                    });
               return list.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <p className="text-lg text-muted-foreground">Não há chamados na fila no momento</p>
+                  <p className="text-lg text-muted-foreground">
+                    Não há chamados na fila no momento
+                  </p>
                 </div>
               ) : (
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {list.map((chamado) => (
-                    <ChamadoCard 
-                      key={chamado.id_chamado} 
-                      chamado={chamado} 
-                      showAtendente 
+                    <ChamadoCard
+                      key={chamado.id_chamado}
+                      chamado={chamado}
+                      showAtendente
                       onAssumirChamado={handleAssumirChamado}
                       isAtendente={user?.eh_atendente || user?.eh_admin}
                     />
@@ -231,11 +316,16 @@ export default function PainelTI() {
             })()}
           </TabsContent>
 
-          {(user?.eh_atendente && !user?.eh_admin && !user?.eh_diretor) && (
+          {user?.eh_atendente && !user?.eh_admin && !user?.eh_diretor && (
             <TabsContent value="todos" className="space-y-4">
               <div className="grid grid-cols-2 gap-2">
-                <Select value={filtroPrioridade} onValueChange={setFiltroPrioridade}>
-                  <SelectTrigger className="text-sm"><SelectValue placeholder="Prioridade" /></SelectTrigger>
+                <Select
+                  value={filtroPrioridade}
+                  onValueChange={setFiltroPrioridade}
+                >
+                  <SelectTrigger className="text-sm">
+                    <SelectValue placeholder="Prioridade" />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todas</SelectItem>
                     <SelectItem value="baixa">Baixa</SelectItem>
@@ -244,7 +334,9 @@ export default function PainelTI() {
                   </SelectContent>
                 </Select>
                 <Select value={filtroStatus} onValueChange={setFiltroStatus}>
-                  <SelectTrigger className="text-sm"><SelectValue placeholder="Status" /></SelectTrigger>
+                  <SelectTrigger className="text-sm">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todos</SelectItem>
                     <SelectItem value="aberto">Aberto</SelectItem>
@@ -256,15 +348,17 @@ export default function PainelTI() {
               </div>
               {chamadosFiltrados.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <p className="text-lg text-muted-foreground">Não há chamados no momento</p>
+                  <p className="text-lg text-muted-foreground">
+                    Não há chamados no momento
+                  </p>
                 </div>
               ) : (
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {chamadosFiltrados.map((chamado) => (
-                    <ChamadoCard 
-                      key={chamado.id_chamado} 
-                      chamado={chamado} 
-                      showAtendente 
+                    <ChamadoCard
+                      key={chamado.id_chamado}
+                      chamado={chamado}
+                      showAtendente
                       onAssumirChamado={handleAssumirChamado}
                       isAtendente
                     />
@@ -278,13 +372,23 @@ export default function PainelTI() {
             <TabsContent value="usuarios" className="space-y-6">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
-                  <h2 className="text-xl font-semibold mb-2">Gerenciar Usuários</h2>
-                  <p className="text-sm text-muted-foreground">Cadastre novos usuários no sistema</p>
+                  <h2 className="text-xl font-semibold mb-2">
+                    Gerenciar Usuários
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    Cadastre novos usuários no sistema
+                  </p>
                 </div>
-                <CadastrarUsuarioDialog filiais={filiais} setores={setores} onUsuarioCriado={handleUsuarioCriado} />
+                <CadastrarUsuarioDialog
+                  filiais={filiais}
+                  setores={setores}
+                  onUsuarioCriado={handleUsuarioCriado}
+                />
               </div>
               <div className="pt-6 border-t">
-                <h3 className="text-lg font-semibold mb-4">Usuários Cadastrados</h3>
+                <h3 className="text-lg font-semibold mb-4">
+                  Usuários Cadastrados
+                </h3>
                 <ListaUsuarios filiais={filiais} setores={setores} />
               </div>
             </TabsContent>
