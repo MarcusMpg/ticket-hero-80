@@ -28,7 +28,7 @@ interface Setor {
   nome_setor: string;
 }
 
-export default function PainelTI() {
+export default function Painel() {
   const [chamados, setChamados] = useState<Chamado[]>([]);
   const [filiais, setFiliais] = useState<Filial[]>([]);
   const [setores, setSetores] = useState<Setor[]>([]);
