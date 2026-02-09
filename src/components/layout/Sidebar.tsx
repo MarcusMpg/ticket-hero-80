@@ -23,7 +23,7 @@ export const Sidebar = ({ onNavigate }: SidebarProps) => {
   ];
 
   const atendenteLinks = [
-    { to: "/painel", label: "Painel", icon: Home },
+    { to: "/painel-ti", label: "Painel", icon: Home },
     { to: "/meus-atendimentos", label: "Meus Atendimentos", icon: Users },
     { to: "/abrir-chamado", label: "Novo Chamado", icon: Ticket },
     { to: "/meus-chamados", label: "Meus Chamados", icon: ClipboardList },
