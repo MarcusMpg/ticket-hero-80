@@ -241,12 +241,14 @@ export const ListaUsuarios = ({ filiais = [], setores = [] }: ListaUsuariosProps
       'ADMIN': 'Administrador',
       'ATENDENTE': 'Atendente',
       'SOLICITANTE': 'Solicitante',
+      'DIRETOR': 'Diretor',
     };
     return tipos[tipo] || tipo;
   };
 
   const getTipoVariant = (tipo: string): "default" | "secondary" | "destructive" | "outline" => {
     if (tipo === 'ADMIN') return 'destructive';
+    if (tipo === 'DIRETOR') return 'outline';
     if (tipo === 'ATENDENTE') return 'default';
     return 'secondary';
   };
@@ -492,8 +494,9 @@ export const ListaUsuarios = ({ filiais = [], setores = [] }: ListaUsuariosProps
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="SOLICITANTE">Solicitante</SelectItem>
-                  <SelectItem value="ATENDENTE">Atendente (TI)</SelectItem>
+                  <SelectItem value="ATENDENTE">Atendente</SelectItem>
                   <SelectItem value="ADMIN">Administrador</SelectItem>
+                  <SelectItem value="DIRETOR">Diretor</SelectItem>
                 </SelectContent>
               </Select>
             </div>
