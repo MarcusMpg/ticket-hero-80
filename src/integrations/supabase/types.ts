@@ -51,54 +51,76 @@ export type Database = {
       }
       chamados: {
         Row: {
+          aprovacao_diretoria: string | null
           data_abertura: string | null
+          data_aprovacao: string | null
           data_assumido: string | null
           data_fechamento: string | null
           descricao: string
+          id_aprovador: number | null
           id_atendente: number | null
           id_chamado: number
           id_filial: number
           id_setor_destino: number
           id_setor_origem: number
           id_solicitante: number
+          id_tipo_chamado: number | null
+          motivo_recusa: string | null
           prioridade: string
           status_chamado: string
           titulo: string
           ultima_atualizacao: string | null
         }
         Insert: {
+          aprovacao_diretoria?: string | null
           data_abertura?: string | null
+          data_aprovacao?: string | null
           data_assumido?: string | null
           data_fechamento?: string | null
           descricao: string
+          id_aprovador?: number | null
           id_atendente?: number | null
           id_chamado?: number
           id_filial: number
           id_setor_destino: number
           id_setor_origem: number
           id_solicitante: number
+          id_tipo_chamado?: number | null
+          motivo_recusa?: string | null
           prioridade: string
           status_chamado: string
           titulo: string
           ultima_atualizacao?: string | null
         }
         Update: {
+          aprovacao_diretoria?: string | null
           data_abertura?: string | null
+          data_aprovacao?: string | null
           data_assumido?: string | null
           data_fechamento?: string | null
           descricao?: string
+          id_aprovador?: number | null
           id_atendente?: number | null
           id_chamado?: number
           id_filial?: number
           id_setor_destino?: number
           id_setor_origem?: number
           id_solicitante?: number
+          id_tipo_chamado?: number | null
+          motivo_recusa?: string | null
           prioridade?: string
           status_chamado?: string
           titulo?: string
           ultima_atualizacao?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "chamados_id_aprovador_fkey"
+            columns: ["id_aprovador"]
+            isOneToOne: false
+            referencedRelation: "usuario"
+            referencedColumns: ["id_usuario"]
+          },
           {
             foreignKeyName: "chamados_id_filial_fkey"
             columns: ["id_filial"]
@@ -119,6 +141,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "setor"
             referencedColumns: ["id_setor"]
+          },
+          {
+            foreignKeyName: "chamados_id_tipo_chamado_fkey"
+            columns: ["id_tipo_chamado"]
+            isOneToOne: false
+            referencedRelation: "tipo_chamado"
+            referencedColumns: ["id_tipo_chamado"]
           },
           {
             foreignKeyName: "fk_chamados_filial"
@@ -248,6 +277,30 @@ export type Database = {
         Update: {
           id_setor?: number
           nome_setor?: string
+        }
+        Relationships: []
+      }
+      tipo_chamado: {
+        Row: {
+          ativo: boolean
+          data_criacao: string | null
+          id_tipo_chamado: number
+          nome: string
+          requer_aprovacao_diretoria: boolean
+        }
+        Insert: {
+          ativo?: boolean
+          data_criacao?: string | null
+          id_tipo_chamado?: number
+          nome: string
+          requer_aprovacao_diretoria?: boolean
+        }
+        Update: {
+          ativo?: boolean
+          data_criacao?: string | null
+          id_tipo_chamado?: number
+          nome?: string
+          requer_aprovacao_diretoria?: boolean
         }
         Relationships: []
       }

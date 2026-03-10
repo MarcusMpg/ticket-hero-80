@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Chamado } from "@/types/chamado";
-import { Clock, User, CheckCircle } from "lucide-react";
+import { Clock, User, CheckCircle, ShieldCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface ChamadoCardProps {
@@ -87,6 +87,25 @@ export const ChamadoCard = ({
           </div>
         )}
 
+        {chamado.aprovacao_diretoria === 'PENDENTE' && (
+          <Badge variant="warning" className="flex items-center gap-1 w-fit">
+            <ShieldCheck className="h-3 w-3" />
+            Aguardando Aprovação
+          </Badge>
+        )}
+        {chamado.aprovacao_diretoria === 'RECUSADO' && (
+          <Badge variant="destructive" className="flex items-center gap-1 w-fit">
+            <ShieldCheck className="h-3 w-3" />
+            Recusado pela Diretoria
+          </Badge>
+        )}
+        {chamado.aprovacao_diretoria === 'APROVADO' && (
+          <Badge variant="success" className="flex items-center gap-1 w-fit">
+            <ShieldCheck className="h-3 w-3" />
+            Aprovado
+          </Badge>
+        )}
+
         {showAtendente && (
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <User className="h-4 w-4" />
@@ -101,8 +120,12 @@ export const ChamadoCard = ({
           </div>
         )}
 
+        {(() => {
+          const pendingApproval = chamado.aprovacao_diretoria === 'PENDENTE';
+          const canAssume = isAtendente && !chamado.id_atendente && chamado.status === 'aberto' && !pendingApproval;
+          return (
         <div className="flex flex-col sm:flex-row gap-2">
-          {isAtendente && !chamado.id_atendente && chamado.status === 'aberto' && (
+          {canAssume && (
             <Button 
               variant="default" 
               size="sm" 
@@ -114,15 +137,23 @@ export const ChamadoCard = ({
               <span className="sm:hidden">Assumir</span>
             </Button>
           )}
+          {pendingApproval && isAtendente && !chamado.id_atendente && chamado.status === 'aberto' && (
+            <Button variant="outline" size="sm" className="w-full" disabled>
+              <ShieldCheck className="h-4 w-4 mr-2" />
+              Aguardando aprovação
+            </Button>
+          )}
           <Button 
             variant="outline" 
             size="sm" 
-            className={isAtendente && !chamado.id_atendente && chamado.status === 'aberto' ? 'w-full sm:flex-1' : 'w-full'}
+            className={canAssume ? 'w-full sm:flex-1' : 'w-full'}
             onClick={() => navigate(`/chamado/${chamado.id_chamado}`)}
           >
             Ver Detalhes
           </Button>
         </div>
+          );
+        })()}
       </CardContent>
     </Card>
   );

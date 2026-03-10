@@ -15,6 +15,7 @@ import MeusAtendimentos from "./pages/MeusAtendimentos";
 import DetalheChamado from "./pages/DetalheChamado";
 import Estatisticas from "./pages/Estatisticas";
 import Dashboard from "./pages/Dashboard";
+import AprovacoesDiretoria from "./pages/AprovacoesDiretoria";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -83,6 +84,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/aprovacoes"
+              element={
+                <ProtectedRoute>
+                  <AprovacoesDiretoria />
                 </ProtectedRoute>
               }
             />

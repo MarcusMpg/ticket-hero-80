@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CadastrarUsuarioDialog } from "@/components/admin/CadastrarUsuarioDialog";
 import { ListaUsuarios } from "@/components/admin/ListaUsuarios";
+import { GerenciarTiposChamado } from "@/components/admin/GerenciarTiposChamado";
 import {
   Select,
   SelectContent,
@@ -131,6 +132,13 @@ export default function Painel() {
   const handleUsuarioCriado = () => {};
 
   const handleAssumirChamado = async (chamadoId: number) => {
+    // Verificar se o chamado precisa de aprovação
+    const chamado = chamados.find(c => c.id_chamado === chamadoId);
+    if (chamado?.aprovacao_diretoria === 'PENDENTE') {
+      toast({ title: "Aguardando aprovação", description: "Este chamado precisa ser aprovado pela diretoria antes de ser assumido.", variant: "destructive" });
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from("chamados")
@@ -208,6 +216,11 @@ export default function Painel() {
             {user?.eh_admin && (
               <TabsTrigger value="usuarios" className="flex-1 sm:flex-none">
                 Usuários
+              </TabsTrigger>
+            )}
+            {user?.eh_admin && (
+              <TabsTrigger value="tipos-chamado" className="flex-1 sm:flex-none">
+                Tipos de Chamado
               </TabsTrigger>
             )}
           </TabsList>
@@ -391,6 +404,17 @@ export default function Painel() {
                 </h3>
                 <ListaUsuarios filiais={filiais} setores={setores} />
               </div>
+            </TabsContent>
+          )}
+          {user?.eh_admin && (
+            <TabsContent value="tipos-chamado" className="space-y-6">
+              <div>
+                <h2 className="text-xl font-semibold mb-2">Tipos de Chamado</h2>
+                <p className="text-sm text-muted-foreground">
+                  Gerencie os tipos de chamado e defina quais precisam de aprovação da diretoria
+                </p>
+              </div>
+              <GerenciarTiposChamado />
             </TabsContent>
           )}
         </Tabs>

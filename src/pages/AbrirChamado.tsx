@@ -18,6 +18,12 @@ interface Setor {
   nome_setor: string;
 }
 
+interface TipoChamado {
+  id_tipo_chamado: number;
+  nome: string;
+  requer_aprovacao_diretoria: boolean;
+}
+
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 export default function AbrirChamado() {
@@ -27,6 +33,8 @@ export default function AbrirChamado() {
   const [setorDestino, setSetorDestino] = useState("");
   const [setores, setSetores] = useState<Setor[]>([]);
   const [setorOrigemNome, setSetorOrigemNome] = useState("");
+  const [tipoChamado, setTipoChamado] = useState("");
+  const [tiposChamado, setTiposChamado] = useState<TipoChamado[]>([]);
   const [anexos, setAnexos] = useState<File[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
@@ -34,22 +42,24 @@ export default function AbrirChamado() {
   const { toast } = useToast();
 
   useEffect(() => {
-    const fetchSetores = async () => {
-      const { data, error } = await supabase
-        .from('setor')
-        .select('*')
-        .order('nome_setor');
+    const fetchData = async () => {
+      const [setoresRes, tiposRes] = await Promise.all([
+        supabase.from('setor').select('*').order('nome_setor'),
+        supabase.from('tipo_chamado').select('*').eq('ativo', true).order('nome'),
+      ]);
 
-      if (!error && data) {
-        setSetores(data);
-        // Encontrar nome do setor de origem do usuário
+      if (!setoresRes.error && setoresRes.data) {
+        setSetores(setoresRes.data);
         if (user?.id_setor) {
-          const setorOrigem = data.find(s => s.id_setor === user.id_setor);
+          const setorOrigem = setoresRes.data.find(s => s.id_setor === user.id_setor);
           if (setorOrigem) setSetorOrigemNome(setorOrigem.nome_setor);
         }
       }
+      if (!tiposRes.error && tiposRes.data) {
+        setTiposChamado(tiposRes.data);
+      }
     };
-    fetchSetores();
+    fetchData();
   }, [user?.id_setor]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -96,18 +106,32 @@ export default function AbrirChamado() {
     setIsLoading(true);
 
     try {
+      // Verificar se o tipo selecionado requer aprovação
+      const tipoSelecionado = tiposChamado.find(t => String(t.id_tipo_chamado) === tipoChamado);
+      const requerAprovacao = tipoSelecionado?.requer_aprovacao_diretoria || false;
+
+      const insertData: any = {
+        titulo,
+        descricao,
+        prioridade,
+        status_chamado: 'ABERTO',
+        id_solicitante: user.id_usuario,
+        id_setor_origem: user.id_setor || 1,
+        id_setor_destino: Number(setorDestino),
+        id_filial: user.id_filial,
+      };
+
+      if (tipoChamado) {
+        insertData.id_tipo_chamado = Number(tipoChamado);
+      }
+
+      if (requerAprovacao) {
+        insertData.aprovacao_diretoria = 'PENDENTE';
+      }
+
       const { data: chamadoData, error: chamadoError } = await supabase
         .from('chamados')
-        .insert({
-          titulo,
-          descricao,
-          prioridade,
-          status_chamado: 'ABERTO',
-          id_solicitante: user.id_usuario,
-          id_setor_origem: user.id_setor || 1,
-          id_setor_destino: Number(setorDestino),
-          id_filial: user.id_filial,
-        })
+        .insert(insertData)
         .select()
         .single();
 
@@ -230,6 +254,30 @@ export default function AbrirChamado() {
                   </Select>
                 </div>
               </div>
+
+              {tiposChamado.length > 0 && (
+                <div className="space-y-2">
+                  <Label htmlFor="tipo-chamado">Tipo de Chamado</Label>
+                  <Select value={tipoChamado} onValueChange={setTipoChamado}>
+                    <SelectTrigger id="tipo-chamado">
+                      <SelectValue placeholder="Selecione o tipo (opcional)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {tiposChamado.map((tipo) => (
+                        <SelectItem key={tipo.id_tipo_chamado} value={String(tipo.id_tipo_chamado)}>
+                          {tipo.nome}
+                          {tipo.requer_aprovacao_diretoria ? " (requer aprovação)" : ""}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {tipoChamado && tiposChamado.find(t => String(t.id_tipo_chamado) === tipoChamado)?.requer_aprovacao_diretoria && (
+                    <p className="text-xs text-warning flex items-center gap-1">
+                      ⚠️ Este tipo de chamado requer aprovação da diretoria antes de ser atendido.
+                    </p>
+                  )}
+                </div>
+              )}
 
               <div className="space-y-2">
                 <Label htmlFor="prioridade">Prioridade *</Label>

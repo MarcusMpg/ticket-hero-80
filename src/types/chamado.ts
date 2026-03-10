@@ -17,6 +17,8 @@ export interface Chamado {
   atendente_nome?: string | null;
   setor_origem_nome?: string;
   setor_destino_nome?: string;
+  aprovacao_diretoria?: string | null;
+  tipo_chamado_nome?: string | null;
 }
 
 export interface Interacao {
