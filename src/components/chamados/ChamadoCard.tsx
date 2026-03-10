@@ -120,7 +120,10 @@ export const ChamadoCard = ({
           </div>
         )}
 
-        <div className="flex flex-col sm:flex-row gap-2">
+        {(() => {
+          const pendingApproval = chamado.aprovacao_diretoria === 'PENDENTE';
+          const canAssume = isAtendente && !chamado.id_atendente && chamado.status === 'aberto' && !pendingApproval;
+          return (
           {isAtendente && !chamado.id_atendente && chamado.status === 'aberto' && (
             <Button 
               variant="default" 
