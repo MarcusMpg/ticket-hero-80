@@ -33,5 +33,6 @@ export const CHAMADOS_SELECT = `
   solicitante:usuario!fk_chamados_id_solicitante_cascade(nome),
   atendente:usuario!fk_chamados_id_atendente_setnull(nome),
   setor_origem:setor!chamados_id_setor_origem_fkey(nome_setor),
-  setor_destino:setor!fk_chamados_setor(nome_setor)
+  setor_destino:setor!fk_chamados_setor(nome_setor),
+  tipo_chamado:tipo_chamado(nome)
 `;
