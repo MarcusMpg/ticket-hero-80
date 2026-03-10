@@ -23,6 +23,8 @@ export function mapChamado(item: any): Chamado {
     atendente_nome: item.atendente?.nome,
     setor_origem_nome: item.setor_origem?.nome_setor,
     setor_destino_nome: item.setor_destino?.nome_setor,
+    aprovacao_diretoria: item.aprovacao_diretoria,
+    tipo_chamado_nome: item.tipo_chamado?.nome,
   };
 }
 
