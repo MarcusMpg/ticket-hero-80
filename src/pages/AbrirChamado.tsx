@@ -42,22 +42,24 @@ export default function AbrirChamado() {
   const { toast } = useToast();
 
   useEffect(() => {
-    const fetchSetores = async () => {
-      const { data, error } = await supabase
-        .from('setor')
-        .select('*')
-        .order('nome_setor');
+    const fetchData = async () => {
+      const [setoresRes, tiposRes] = await Promise.all([
+        supabase.from('setor').select('*').order('nome_setor'),
+        supabase.from('tipo_chamado').select('*').eq('ativo', true).order('nome'),
+      ]);
 
-      if (!error && data) {
-        setSetores(data);
-        // Encontrar nome do setor de origem do usuário
+      if (!setoresRes.error && setoresRes.data) {
+        setSetores(setoresRes.data);
         if (user?.id_setor) {
-          const setorOrigem = data.find(s => s.id_setor === user.id_setor);
+          const setorOrigem = setoresRes.data.find(s => s.id_setor === user.id_setor);
           if (setorOrigem) setSetorOrigemNome(setorOrigem.nome_setor);
         }
       }
+      if (!tiposRes.error && tiposRes.data) {
+        setTiposChamado(tiposRes.data);
+      }
     };
-    fetchSetores();
+    fetchData();
   }, [user?.id_setor]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
