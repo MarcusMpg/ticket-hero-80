@@ -454,8 +454,13 @@ export default function DetalheChamado() {
               <Card className="shadow-card">
                 <CardHeader><CardTitle>Ações do Atendente</CardTitle></CardHeader>
                 <CardContent className="space-y-3">
-                  {!chamado.id_atendente && (
+                  {!chamado.id_atendente && chamado.aprovacao_diretoria !== 'PENDENTE' && (
                     <Button className="w-full" onClick={handleAssumirChamado} size="sm">Assumir Chamado</Button>
+                  )}
+                  {!chamado.id_atendente && chamado.aprovacao_diretoria === 'PENDENTE' && (
+                    <div className="text-sm text-warning text-center py-2">
+                      ⚠️ Aguardando aprovação da diretoria
+                    </div>
                   )}
                   <div className="space-y-2">
                     <p className="text-sm font-medium">Alterar Status</p>
