@@ -18,6 +18,12 @@ interface Setor {
   nome_setor: string;
 }
 
+interface TipoChamado {
+  id_tipo_chamado: number;
+  nome: string;
+  requer_aprovacao_diretoria: boolean;
+}
+
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 export default function AbrirChamado() {
