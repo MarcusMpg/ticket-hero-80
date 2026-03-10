@@ -33,6 +33,8 @@ export default function AbrirChamado() {
   const [setorDestino, setSetorDestino] = useState("");
   const [setores, setSetores] = useState<Setor[]>([]);
   const [setorOrigemNome, setSetorOrigemNome] = useState("");
+  const [tipoChamado, setTipoChamado] = useState("");
+  const [tiposChamado, setTiposChamado] = useState<TipoChamado[]>([]);
   const [anexos, setAnexos] = useState<File[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
