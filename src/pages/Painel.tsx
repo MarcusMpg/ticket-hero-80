@@ -211,6 +211,11 @@ export default function Painel() {
                 Usuários
               </TabsTrigger>
             )}
+            {user?.eh_admin && (
+              <TabsTrigger value="tipos-chamado" className="flex-1 sm:flex-none">
+                Tipos de Chamado
+              </TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="chamados" className="space-y-4">
