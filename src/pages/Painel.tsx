@@ -132,6 +132,13 @@ export default function Painel() {
   const handleUsuarioCriado = () => {};
 
   const handleAssumirChamado = async (chamadoId: number) => {
+    // Verificar se o chamado precisa de aprovação
+    const chamado = chamados.find(c => c.id_chamado === chamadoId);
+    if (chamado?.aprovacao_diretoria === 'PENDENTE') {
+      toast({ title: "Aguardando aprovação", description: "Este chamado precisa ser aprovado pela diretoria antes de ser assumido.", variant: "destructive" });
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from("chamados")
