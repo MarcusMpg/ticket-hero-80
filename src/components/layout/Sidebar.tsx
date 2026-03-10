@@ -33,6 +33,7 @@ export const Sidebar = ({ onNavigate }: SidebarProps) => {
 
   const diretorLinks = [
     { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { to: "/aprovacoes", label: "Aprovações", icon: ShieldCheck },
     { to: "/painel-ti", label: "Todos Chamados", icon: Home },
     { to: "/abrir-chamado", label: "Novo Chamado", icon: Ticket },
     { to: "/meus-chamados", label: "Meus Chamados", icon: ClipboardList },

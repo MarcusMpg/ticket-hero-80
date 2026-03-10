@@ -399,6 +399,17 @@ export default function Painel() {
               </div>
             </TabsContent>
           )}
+          {user?.eh_admin && (
+            <TabsContent value="tipos-chamado" className="space-y-6">
+              <div>
+                <h2 className="text-xl font-semibold mb-2">Tipos de Chamado</h2>
+                <p className="text-sm text-muted-foreground">
+                  Gerencie os tipos de chamado e defina quais precisam de aprovação da diretoria
+                </p>
+              </div>
+              <GerenciarTiposChamado />
+            </TabsContent>
+          )}
         </Tabs>
       </div>
     </MainLayout>

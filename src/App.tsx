@@ -88,6 +88,14 @@ const App = () => (
               }
             />
             <Route
+              path="/aprovacoes"
+              element={
+                <ProtectedRoute>
+                  <AprovacoesDiretoria />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/chamado/:id"
               element={
                 <ProtectedRoute>

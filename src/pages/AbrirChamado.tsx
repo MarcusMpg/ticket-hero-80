@@ -255,6 +255,30 @@ export default function AbrirChamado() {
                 </div>
               </div>
 
+              {tiposChamado.length > 0 && (
+                <div className="space-y-2">
+                  <Label htmlFor="tipo-chamado">Tipo de Chamado</Label>
+                  <Select value={tipoChamado} onValueChange={setTipoChamado}>
+                    <SelectTrigger id="tipo-chamado">
+                      <SelectValue placeholder="Selecione o tipo (opcional)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {tiposChamado.map((tipo) => (
+                        <SelectItem key={tipo.id_tipo_chamado} value={String(tipo.id_tipo_chamado)}>
+                          {tipo.nome}
+                          {tipo.requer_aprovacao_diretoria ? " (requer aprovação)" : ""}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {tipoChamado && tiposChamado.find(t => String(t.id_tipo_chamado) === tipoChamado)?.requer_aprovacao_diretoria && (
+                    <p className="text-xs text-warning flex items-center gap-1">
+                      ⚠️ Este tipo de chamado requer aprovação da diretoria antes de ser atendido.
+                    </p>
+                  )}
+                </div>
+              )}
+
               <div className="space-y-2">
                 <Label htmlFor="prioridade">Prioridade *</Label>
                 <Select value={prioridade} onValueChange={setPrioridade}>
