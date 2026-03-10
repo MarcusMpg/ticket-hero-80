@@ -138,6 +138,10 @@ export default function DetalheChamado() {
 
   const handleAssumirChamado = async () => {
     if (!user) return;
+    if (chamado?.aprovacao_diretoria === 'PENDENTE') {
+      toast({ title: "Aguardando aprovação", description: "Este chamado precisa ser aprovado pela diretoria.", variant: "destructive" });
+      return;
+    }
     try {
       const { error } = await supabase
         .from('chamados')
