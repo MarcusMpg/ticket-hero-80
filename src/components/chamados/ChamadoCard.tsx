@@ -124,7 +124,8 @@ export const ChamadoCard = ({
           const pendingApproval = chamado.aprovacao_diretoria === 'PENDENTE';
           const canAssume = isAtendente && !chamado.id_atendente && chamado.status === 'aberto' && !pendingApproval;
           return (
-          {isAtendente && !chamado.id_atendente && chamado.status === 'aberto' && (
+        <div className="flex flex-col sm:flex-row gap-2">
+          {canAssume && (
             <Button 
               variant="default" 
               size="sm" 
@@ -136,15 +137,23 @@ export const ChamadoCard = ({
               <span className="sm:hidden">Assumir</span>
             </Button>
           )}
+          {pendingApproval && isAtendente && !chamado.id_atendente && chamado.status === 'aberto' && (
+            <Button variant="outline" size="sm" className="w-full" disabled>
+              <ShieldCheck className="h-4 w-4 mr-2" />
+              Aguardando aprovação
+            </Button>
+          )}
           <Button 
             variant="outline" 
             size="sm" 
-            className={isAtendente && !chamado.id_atendente && chamado.status === 'aberto' ? 'w-full sm:flex-1' : 'w-full'}
+            className={canAssume ? 'w-full sm:flex-1' : 'w-full'}
             onClick={() => navigate(`/chamado/${chamado.id_chamado}`)}
           >
             Ver Detalhes
           </Button>
         </div>
+          );
+        })()}
       </CardContent>
     </Card>
   );
