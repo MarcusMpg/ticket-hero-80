@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CadastrarUsuarioDialog } from "@/components/admin/CadastrarUsuarioDialog";
 import { ListaUsuarios } from "@/components/admin/ListaUsuarios";
+import { GerenciarTiposChamado } from "@/components/admin/GerenciarTiposChamado";
 import {
   Select,
   SelectContent,
