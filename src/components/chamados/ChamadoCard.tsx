@@ -87,6 +87,25 @@ export const ChamadoCard = ({
           </div>
         )}
 
+        {chamado.aprovacao_diretoria === 'PENDENTE' && (
+          <Badge variant="warning" className="flex items-center gap-1 w-fit">
+            <ShieldCheck className="h-3 w-3" />
+            Aguardando Aprovação
+          </Badge>
+        )}
+        {chamado.aprovacao_diretoria === 'RECUSADO' && (
+          <Badge variant="destructive" className="flex items-center gap-1 w-fit">
+            <ShieldCheck className="h-3 w-3" />
+            Recusado pela Diretoria
+          </Badge>
+        )}
+        {chamado.aprovacao_diretoria === 'APROVADO' && (
+          <Badge variant="success" className="flex items-center gap-1 w-fit">
+            <ShieldCheck className="h-3 w-3" />
+            Aprovado
+          </Badge>
+        )}
+
         {showAtendente && (
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <User className="h-4 w-4" />
