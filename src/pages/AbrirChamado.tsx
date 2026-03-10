@@ -106,18 +106,32 @@ export default function AbrirChamado() {
     setIsLoading(true);
 
     try {
+      // Verificar se o tipo selecionado requer aprovação
+      const tipoSelecionado = tiposChamado.find(t => String(t.id_tipo_chamado) === tipoChamado);
+      const requerAprovacao = tipoSelecionado?.requer_aprovacao_diretoria || false;
+
+      const insertData: any = {
+        titulo,
+        descricao,
+        prioridade,
+        status_chamado: 'ABERTO',
+        id_solicitante: user.id_usuario,
+        id_setor_origem: user.id_setor || 1,
+        id_setor_destino: Number(setorDestino),
+        id_filial: user.id_filial,
+      };
+
+      if (tipoChamado) {
+        insertData.id_tipo_chamado = Number(tipoChamado);
+      }
+
+      if (requerAprovacao) {
+        insertData.aprovacao_diretoria = 'PENDENTE';
+      }
+
       const { data: chamadoData, error: chamadoError } = await supabase
         .from('chamados')
-        .insert({
-          titulo,
-          descricao,
-          prioridade,
-          status_chamado: 'ABERTO',
-          id_solicitante: user.id_usuario,
-          id_setor_origem: user.id_setor || 1,
-          id_setor_destino: Number(setorDestino),
-          id_filial: user.id_filial,
-        })
+        .insert(insertData)
         .select()
         .single();
 
