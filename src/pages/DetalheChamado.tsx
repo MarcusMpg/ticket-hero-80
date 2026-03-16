@@ -469,10 +469,8 @@ export default function DetalheChamado() {
                       <SelectContent>
                         <SelectItem value="aberto">Aberto</SelectItem>
                         <SelectItem value="em_andamento">Em Andamento</SelectItem>
-                        <SelectItem value="aguardando">Aguardando</SelectItem>
                         <SelectItem value="concluido">Concluído</SelectItem>
                         <SelectItem value="cancelado">Cancelado</SelectItem>
-                        <SelectItem value="fechado">Fechado</SelectItem>
                       </SelectContent>
                     </Select>
                     
