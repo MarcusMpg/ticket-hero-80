@@ -286,9 +286,24 @@ export default function AbrirChamado() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="BAIXA">Baixa</SelectItem>
-                    <SelectItem value="MEDIA">Média</SelectItem>
-                    <SelectItem value="ALTA">Alta</SelectItem>
+                    <SelectItem value="BAIXA">
+                      <span className="flex items-center gap-2">
+                        <span className="h-2 w-2 rounded-full bg-info" />
+                        Baixa - 72h a 120h
+                      </span>
+                    </SelectItem>
+                    <SelectItem value="MEDIA">
+                      <span className="flex items-center gap-2">
+                        <span className="h-2 w-2 rounded-full bg-warning" />
+                        Média - 24h a 48h
+                      </span>
+                    </SelectItem>
+                    <SelectItem value="ALTA">
+                      <span className="flex items-center gap-2">
+                        <span className="h-2 w-2 rounded-full bg-destructive" />
+                        Alta - 4h a 8h
+                      </span>
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
