@@ -21,10 +21,10 @@ const statusConfig: Record<string, { label: string; variant: "info" | "warning" 
   fechado: { label: "Fechado", variant: "default" },
 };
 
-const prioridadeConfig: Record<string, { label: string; variant: "default" | "warning" | "destructive" }> = {
-  baixa: { label: "Baixa", variant: "default" },
-  media: { label: "Média", variant: "warning" },
-  alta: { label: "Alta", variant: "destructive" },
+const prioridadeConfig: Record<string, { label: string; variant: "default" | "warning" | "destructive" | "info" }> = {
+  baixa: { label: "Baixa - 72h a 120h", variant: "info" },
+  media: { label: "Média - 24h a 48h", variant: "warning" },
+  alta: { label: "Alta - 4h a 8h", variant: "destructive" },
 };
 
 export const ChamadoCard = ({ 

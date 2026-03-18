@@ -162,8 +162,10 @@ export default function AprovacoesDiretoria() {
     });
   };
 
-  const prioridadeVariant: Record<string, "default" | "warning" | "destructive"> = {
-    BAIXA: "default", MEDIA: "warning", ALTA: "destructive",
+  const prioridadeConfig: Record<string, { label: string; variant: "default" | "warning" | "destructive" | "info" }> = {
+    BAIXA: { label: "Baixa - 72h a 120h", variant: "info" },
+    MEDIA: { label: "Média - 24h a 48h", variant: "warning" },
+    ALTA: { label: "Alta - 4h a 8h", variant: "destructive" },
   };
 
   if (isLoading) {
