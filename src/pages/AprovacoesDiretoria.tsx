@@ -162,8 +162,10 @@ export default function AprovacoesDiretoria() {
     });
   };
 
-  const prioridadeVariant: Record<string, "default" | "warning" | "destructive"> = {
-    BAIXA: "default", MEDIA: "warning", ALTA: "destructive",
+  const prioridadeConfig: Record<string, { label: string; variant: "default" | "warning" | "destructive" | "info" }> = {
+    BAIXA: { label: "Baixa - 72h a 120h", variant: "info" },
+    MEDIA: { label: "Média - 24h a 48h", variant: "warning" },
+    ALTA: { label: "Alta - 4h a 8h", variant: "destructive" },
   };
 
   if (isLoading) {
@@ -207,8 +209,8 @@ export default function AprovacoesDiretoria() {
                       <CardTitle className="text-base truncate">{chamado.titulo}</CardTitle>
                       <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{chamado.descricao}</p>
                     </div>
-                    <Badge variant={prioridadeVariant[chamado.prioridade] || "default"} className="shrink-0">
-                      {chamado.prioridade}
+                    <Badge variant={prioridadeConfig[chamado.prioridade]?.variant || "default"} className="shrink-0">
+                      {prioridadeConfig[chamado.prioridade]?.label || chamado.prioridade}
                     </Badge>
                   </div>
                 </CardHeader>
