@@ -209,8 +209,8 @@ export default function AprovacoesDiretoria() {
                       <CardTitle className="text-base truncate">{chamado.titulo}</CardTitle>
                       <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{chamado.descricao}</p>
                     </div>
-                    <Badge variant={prioridadeVariant[chamado.prioridade] || "default"} className="shrink-0">
-                      {chamado.prioridade}
+                    <Badge variant={prioridadeConfig[chamado.prioridade]?.variant || "default"} className="shrink-0">
+                      {prioridadeConfig[chamado.prioridade]?.label || chamado.prioridade}
                     </Badge>
                   </div>
                 </CardHeader>
