@@ -1,4 +1,5 @@
 import { Bell, User, LogOut, Menu } from "lucide-react";
+import logo from "@/assets/logo.png";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -35,9 +36,7 @@ export const Header = ({ onMenuClick }: HeaderProps) => {
               <Menu className="h-5 w-5" />
             </Button>
           )}
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <span className="text-lg font-bold">TC</span>
-          </div>
+          <img src={logo} alt="Feirão da Construção" className="h-10 w-10 object-contain" />
           <div className="hidden sm:block">
             <h1 className="text-xl font-bold">Sistema de Chamados</h1>
             {user?.eh_atendente && (

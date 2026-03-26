@@ -13,6 +13,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { Lock, Mail } from "lucide-react";
+import logo from "@/assets/logo.png";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -78,9 +79,7 @@ export default function Login() {
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background to-muted p-4 bg-blue-900">
       <Card className="w-full max-w-md shadow-elevated">
         <CardHeader className="space-y-1 text-center">
-          <div className="mx-auto mb-4 flex h-12 sm:h-16 w-12 sm:w-16 items-center justify-center rounded-full bg-primary text-primary-foreground">
-            <Lock className="h-6 w-6 sm:h-8 sm:w-8" />
-          </div>
+          <img src={logo} alt="Feirão da Construção" className="mx-auto mb-4 h-16 sm:h-20 object-contain" />
           <CardTitle className="text-2xl sm:text-3xl font-bold">
             Sistema de Chamados
           </CardTitle>
