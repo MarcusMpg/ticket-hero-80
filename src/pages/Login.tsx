@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { Mail } from "lucide-react";
+import { Lock, Mail } from "lucide-react";
 import logo from "@/assets/logo.png";
 
 export default function Login() {
