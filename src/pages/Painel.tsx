@@ -40,7 +40,19 @@ export default function Painel() {
   const [filtroStatus, setFiltroStatus] = useState<string>("all");
   const [filtroSetorOrigem, setFiltroSetorOrigem] = useState<string>("all");
   const [filtroSetorDestino, setFiltroSetorDestino] = useState<string>("all");
+  const [filtroMes, setFiltroMes] = useState<string>("all");
+  const [filtroAno, setFiltroAno] = useState<string>(String(new Date().getFullYear()));
   const isInitialLoadRef = useRef(true);
+
+  const meses = [
+    { v: "0", l: "Janeiro" }, { v: "1", l: "Fevereiro" }, { v: "2", l: "Março" },
+    { v: "3", l: "Abril" }, { v: "4", l: "Maio" }, { v: "5", l: "Junho" },
+    { v: "6", l: "Julho" }, { v: "7", l: "Agosto" }, { v: "8", l: "Setembro" },
+    { v: "9", l: "Outubro" }, { v: "10", l: "Novembro" }, { v: "11", l: "Dezembro" },
+  ];
+  const anosDisponiveis = Array.from(
+    new Set(chamados.map(c => c.data_abertura ? new Date(c.data_abertura).getFullYear() : null).filter(Boolean) as number[])
+  ).concat(new Date().getFullYear()).filter((v, i, a) => a.indexOf(v) === i).sort((a, b) => b - a);
 
   const isAuthorized = user?.eh_atendente || user?.eh_admin || user?.eh_diretor;
 
@@ -183,6 +195,13 @@ export default function Painel() {
       String(chamado.id_setor_destino) !== filtroSetorDestino
     )
       return false;
+    if (chamado.data_abertura) {
+      const d = new Date(chamado.data_abertura);
+      if (String(d.getFullYear()) !== filtroAno) return false;
+      if (filtroMes !== "all" && String(d.getMonth()) !== filtroMes) return false;
+    } else {
+      return false;
+    }
     return true;
   });
 
@@ -291,6 +310,23 @@ export default function Painel() {
                   </Select>
                 </>
               )}
+              <Select value={filtroMes} onValueChange={setFiltroMes}>
+                <SelectTrigger className="text-sm">
+                  <SelectValue placeholder="Mês" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os Meses</SelectItem>
+                  {meses.map(m => <SelectItem key={m.v} value={m.v}>{m.l}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <Select value={filtroAno} onValueChange={setFiltroAno}>
+                <SelectTrigger className="text-sm">
+                  <SelectValue placeholder="Ano" />
+                </SelectTrigger>
+                <SelectContent>
+                  {anosDisponiveis.map(a => <SelectItem key={a} value={String(a)}>{a}</SelectItem>)}
+                </SelectContent>
+              </Select>
             </div>
 
             {(() => {
@@ -305,6 +341,10 @@ export default function Painel() {
                         return false;
                       if (filtroStatus !== "all" && c.status !== filtroStatus)
                         return false;
+                      if (!c.data_abertura) return false;
+                      const d = new Date(c.data_abertura);
+                      if (String(d.getFullYear()) !== filtroAno) return false;
+                      if (filtroMes !== "all" && String(d.getMonth()) !== filtroMes) return false;
                       return true;
                     });
               return list.length === 0 ? (
