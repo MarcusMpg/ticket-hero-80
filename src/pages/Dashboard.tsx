@@ -6,6 +6,8 @@ import { Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { Clock, Zap, TrendingUp, AlertTriangle } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 
 interface ChamadoRaw {
   data_abertura: string | null;
@@ -22,9 +24,12 @@ interface SetorInfo {
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const [chamados, setChamados] = useState<ChamadoRaw[]>([]);
+  const [chamadosAll, setChamadosAll] = useState<ChamadoRaw[]>([]);
   const [setores, setSetores] = useState<SetorInfo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const now = new Date();
+  const [mes, setMes] = useState<string>("all");
+  const [ano, setAno] = useState<string>(String(now.getFullYear()));
 
   const isAuthorized = user?.eh_admin || user?.eh_diretor;
 
@@ -34,7 +39,7 @@ export default function Dashboard() {
         supabase.from('chamados').select('data_abertura, data_assumido, data_fechamento, status_chamado, id_setor_destino'),
         supabase.from('setor').select('*'),
       ]);
-      if (chamadosRes.data) setChamados(chamadosRes.data);
+      if (chamadosRes.data) setChamadosAll(chamadosRes.data);
       if (setoresRes.data) setSetores(setoresRes.data);
       setIsLoading(false);
     };
@@ -55,6 +60,26 @@ export default function Dashboard() {
       </MainLayout>
     );
   }
+
+  // Filtro de mês/ano
+  const anosDisponiveis = Array.from(new Set(chamadosAll
+    .map(c => c.data_abertura ? new Date(c.data_abertura).getFullYear() : null)
+    .filter((y): y is number => y !== null)
+  )).sort((a, b) => b - a);
+  if (!anosDisponiveis.includes(now.getFullYear())) anosDisponiveis.unshift(now.getFullYear());
+
+  const chamados = chamadosAll.filter(c => {
+    if (!c.data_abertura) return false;
+    const d = new Date(c.data_abertura);
+    if (String(d.getFullYear()) !== ano) return false;
+    if (mes !== "all" && d.getMonth() !== Number(mes)) return false;
+    return true;
+  });
+
+  const meses = [
+    "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
+    "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"
+  ];
 
   // Cálculos de métricas
   const calcMediaHoras = (diffs: number[]) => {
@@ -101,9 +126,36 @@ export default function Dashboard() {
   return (
     <MainLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold">Dashboard de Performance</h1>
-          <p className="text-sm sm:text-base text-muted-foreground">Visão geral de métricas e indicadores</p>
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold">Dashboard de Performance</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">Visão geral de métricas e indicadores</p>
+          </div>
+          <div className="flex gap-3">
+            <div className="space-y-1">
+              <Label className="text-xs">Mês</Label>
+              <Select value={mes} onValueChange={setMes}>
+                <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  {meses.map((m, i) => (
+                    <SelectItem key={i} value={String(i)}>{m}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Ano</Label>
+              <Select value={ano} onValueChange={setAno}>
+                <SelectTrigger className="w-[110px]"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {anosDisponiveis.map(y => (
+                    <SelectItem key={y} value={String(y)}>{y}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </div>
 
         {/* KPI Cards */}
