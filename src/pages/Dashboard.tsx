@@ -126,9 +126,36 @@ export default function Dashboard() {
   return (
     <MainLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold">Dashboard de Performance</h1>
-          <p className="text-sm sm:text-base text-muted-foreground">Visão geral de métricas e indicadores</p>
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold">Dashboard de Performance</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">Visão geral de métricas e indicadores</p>
+          </div>
+          <div className="flex gap-3">
+            <div className="space-y-1">
+              <Label className="text-xs">Mês</Label>
+              <Select value={mes} onValueChange={setMes}>
+                <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  {meses.map((m, i) => (
+                    <SelectItem key={i} value={String(i)}>{m}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Ano</Label>
+              <Select value={ano} onValueChange={setAno}>
+                <SelectTrigger className="w-[110px]"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {anosDisponiveis.map(y => (
+                    <SelectItem key={y} value={String(y)}>{y}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </div>
 
         {/* KPI Cards */}
