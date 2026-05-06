@@ -39,7 +39,7 @@ export default function Dashboard() {
         supabase.from('chamados').select('data_abertura, data_assumido, data_fechamento, status_chamado, id_setor_destino'),
         supabase.from('setor').select('*'),
       ]);
-      if (chamadosRes.data) setChamados(chamadosRes.data);
+      if (chamadosRes.data) setChamadosAll(chamadosRes.data);
       if (setoresRes.data) setSetores(setoresRes.data);
       setIsLoading(false);
     };
