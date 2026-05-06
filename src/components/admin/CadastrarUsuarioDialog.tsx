@@ -255,6 +255,7 @@ export const CadastrarUsuarioDialog = ({ filiais, setores, onUsuarioCriado }: Ca
             </div>
           </div>
 
+          <div className="flex flex-col sm:flex-row gap-2 justify-end pt-4">
             <Button type="button" variant="outline" onClick={() => setOpen(false)} className="w-full sm:w-auto">
               Cancelar
             </Button>
