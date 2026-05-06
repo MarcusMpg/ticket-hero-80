@@ -341,6 +341,10 @@ export default function Painel() {
                         return false;
                       if (filtroStatus !== "all" && c.status !== filtroStatus)
                         return false;
+                      if (!c.data_abertura) return false;
+                      const d = new Date(c.data_abertura);
+                      if (String(d.getFullYear()) !== filtroAno) return false;
+                      if (filtroMes !== "all" && String(d.getMonth()) !== filtroMes) return false;
                       return true;
                     });
               return list.length === 0 ? (
