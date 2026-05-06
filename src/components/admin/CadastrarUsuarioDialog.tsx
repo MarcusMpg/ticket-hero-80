@@ -228,7 +228,33 @@ export const CadastrarUsuarioDialog = ({ filiais, setores, onUsuarioCriado }: Ca
             </Select>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-2 justify-end pt-4">
+          <div className="space-y-2 rounded-md border p-3">
+            <Label className="text-sm font-medium">Marcadores</Label>
+            <div className="flex flex-col gap-2">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <Checkbox
+                  checked={formData.agendador}
+                  onCheckedChange={(v) => setFormData({ ...formData, agendador: !!v })}
+                />
+                <span className="text-sm">Agendador</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <Checkbox
+                  checked={formData.separador}
+                  onCheckedChange={(v) => setFormData({ ...formData, separador: !!v })}
+                />
+                <span className="text-sm">Separador</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <Checkbox
+                  checked={formData.modo_tv}
+                  onCheckedChange={(v) => setFormData({ ...formData, modo_tv: !!v })}
+                />
+                <span className="text-sm">Modo TV</span>
+              </label>
+            </div>
+          </div>
+
             <Button type="button" variant="outline" onClick={() => setOpen(false)} className="w-full sm:w-auto">
               Cancelar
             </Button>
