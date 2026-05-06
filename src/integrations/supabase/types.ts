@@ -306,6 +306,7 @@ export type Database = {
       }
       usuario: {
         Row: {
+          agendador: boolean
           ativo: boolean
           data_cadastro: string | null
           deve_trocar_senha: boolean
@@ -313,12 +314,15 @@ export type Database = {
           id_filial: number
           id_setor: number | null
           id_usuario: number
+          modo_tv: boolean
           nome: string
           nome_usuario: string
           senha_hash: string
+          separador: boolean
           tipo_usuario: string
         }
         Insert: {
+          agendador?: boolean
           ativo?: boolean
           data_cadastro?: string | null
           deve_trocar_senha?: boolean
@@ -326,12 +330,15 @@ export type Database = {
           id_filial: number
           id_setor?: number | null
           id_usuario?: number
+          modo_tv?: boolean
           nome: string
           nome_usuario: string
           senha_hash: string
+          separador?: boolean
           tipo_usuario: string
         }
         Update: {
+          agendador?: boolean
           ativo?: boolean
           data_cadastro?: string | null
           deve_trocar_senha?: boolean
@@ -339,9 +346,11 @@ export type Database = {
           id_filial?: number
           id_setor?: number | null
           id_usuario?: number
+          modo_tv?: boolean
           nome?: string
           nome_usuario?: string
           senha_hash?: string
+          separador?: boolean
           tipo_usuario?: string
         }
         Relationships: [
