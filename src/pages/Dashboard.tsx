@@ -61,6 +61,26 @@ export default function Dashboard() {
     );
   }
 
+  // Filtro de mês/ano
+  const anosDisponiveis = Array.from(new Set(chamadosAll
+    .map(c => c.data_abertura ? new Date(c.data_abertura).getFullYear() : null)
+    .filter((y): y is number => y !== null)
+  )).sort((a, b) => b - a);
+  if (!anosDisponiveis.includes(now.getFullYear())) anosDisponiveis.unshift(now.getFullYear());
+
+  const chamados = chamadosAll.filter(c => {
+    if (!c.data_abertura) return false;
+    const d = new Date(c.data_abertura);
+    if (String(d.getFullYear()) !== ano) return false;
+    if (mes !== "all" && d.getMonth() !== Number(mes)) return false;
+    return true;
+  });
+
+  const meses = [
+    "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
+    "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"
+  ];
+
   // Cálculos de métricas
   const calcMediaHoras = (diffs: number[]) => {
     if (diffs.length === 0) return null;
