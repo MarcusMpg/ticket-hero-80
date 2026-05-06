@@ -195,6 +195,13 @@ export default function Painel() {
       String(chamado.id_setor_destino) !== filtroSetorDestino
     )
       return false;
+    if (chamado.data_abertura) {
+      const d = new Date(chamado.data_abertura);
+      if (String(d.getFullYear()) !== filtroAno) return false;
+      if (filtroMes !== "all" && String(d.getMonth()) !== filtroMes) return false;
+    } else {
+      return false;
+    }
     return true;
   });
 
