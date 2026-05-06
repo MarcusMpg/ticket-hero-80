@@ -310,6 +310,23 @@ export default function Painel() {
                   </Select>
                 </>
               )}
+              <Select value={filtroMes} onValueChange={setFiltroMes}>
+                <SelectTrigger className="text-sm">
+                  <SelectValue placeholder="Mês" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os Meses</SelectItem>
+                  {meses.map(m => <SelectItem key={m.v} value={m.v}>{m.l}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <Select value={filtroAno} onValueChange={setFiltroAno}>
+                <SelectTrigger className="text-sm">
+                  <SelectValue placeholder="Ano" />
+                </SelectTrigger>
+                <SelectContent>
+                  {anosDisponiveis.map(a => <SelectItem key={a} value={String(a)}>{a}</SelectItem>)}
+                </SelectContent>
+              </Select>
             </div>
 
             {(() => {
