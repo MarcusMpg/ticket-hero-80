@@ -75,6 +75,9 @@ export const CadastrarUsuarioDialog = ({ filiais, setores, onUsuarioCriado }: Ca
           tipo_usuario: formData.tipo_usuario,
           id_filial: parseInt(formData.id_filial),
           id_setor: parseInt(formData.id_setor),
+          agendador: formData.agendador,
+          separador: formData.separador,
+          modo_tv: formData.modo_tv,
         },
       });
 
@@ -102,6 +105,9 @@ export const CadastrarUsuarioDialog = ({ filiais, setores, onUsuarioCriado }: Ca
         tipo_usuario: "USUARIO",
         id_filial: "",
         id_setor: "",
+        agendador: false,
+        separador: false,
+        modo_tv: false,
       });
 
       setOpen(false);
