@@ -24,9 +24,12 @@ interface SetorInfo {
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const [chamados, setChamados] = useState<ChamadoRaw[]>([]);
+  const [chamadosAll, setChamadosAll] = useState<ChamadoRaw[]>([]);
   const [setores, setSetores] = useState<SetorInfo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const now = new Date();
+  const [mes, setMes] = useState<string>("all");
+  const [ano, setAno] = useState<string>(String(now.getFullYear()));
 
   const isAuthorized = user?.eh_admin || user?.eh_diretor;
 
