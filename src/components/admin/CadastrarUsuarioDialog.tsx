@@ -37,6 +37,9 @@ export const CadastrarUsuarioDialog = ({ filiais, setores, onUsuarioCriado }: Ca
     tipo_usuario: "USUARIO",
     id_filial: "",
     id_setor: "",
+    agendador: false,
+    separador: false,
+    modo_tv: false,
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
