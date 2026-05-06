@@ -245,7 +245,10 @@ serve(async (req) => {
         id_setor,
         senha_hash: 'supabase_auth',
         ativo: true,
-        deve_trocar_senha: true // Força troca de senha no primeiro acesso
+        deve_trocar_senha: true, // Força troca de senha no primeiro acesso
+        agendador: !!agendador,
+        separador: !!separador,
+        modo_tv: !!modo_tv,
       })
       .select('id_usuario')
       .single();
