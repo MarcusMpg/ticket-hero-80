@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -36,6 +37,9 @@ export const CadastrarUsuarioDialog = ({ filiais, setores, onUsuarioCriado }: Ca
     tipo_usuario: "USUARIO",
     id_filial: "",
     id_setor: "",
+    agendador: false,
+    separador: false,
+    modo_tv: false,
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -71,6 +75,9 @@ export const CadastrarUsuarioDialog = ({ filiais, setores, onUsuarioCriado }: Ca
           tipo_usuario: formData.tipo_usuario,
           id_filial: parseInt(formData.id_filial),
           id_setor: parseInt(formData.id_setor),
+          agendador: formData.agendador,
+          separador: formData.separador,
+          modo_tv: formData.modo_tv,
         },
       });
 
@@ -98,6 +105,9 @@ export const CadastrarUsuarioDialog = ({ filiais, setores, onUsuarioCriado }: Ca
         tipo_usuario: "USUARIO",
         id_filial: "",
         id_setor: "",
+        agendador: false,
+        separador: false,
+        modo_tv: false,
       });
 
       setOpen(false);
@@ -216,6 +226,33 @@ export const CadastrarUsuarioDialog = ({ filiais, setores, onUsuarioCriado }: Ca
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="space-y-2 rounded-md border p-3">
+            <Label className="text-sm font-medium">Marcadores</Label>
+            <div className="flex flex-col gap-2">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <Checkbox
+                  checked={formData.agendador}
+                  onCheckedChange={(v) => setFormData({ ...formData, agendador: !!v })}
+                />
+                <span className="text-sm">Agendador</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <Checkbox
+                  checked={formData.separador}
+                  onCheckedChange={(v) => setFormData({ ...formData, separador: !!v })}
+                />
+                <span className="text-sm">Separador</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <Checkbox
+                  checked={formData.modo_tv}
+                  onCheckedChange={(v) => setFormData({ ...formData, modo_tv: !!v })}
+                />
+                <span className="text-sm">Modo TV</span>
+              </label>
+            </div>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-2 justify-end pt-4">

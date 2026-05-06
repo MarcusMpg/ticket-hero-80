@@ -160,7 +160,7 @@ serve(async (req) => {
     }
 
     // Dados do novo usuário
-    const { email, password, nome, tipo_usuario, id_filial, id_setor } = await req.json();
+    const { email, password, nome, tipo_usuario, id_filial, id_setor, agendador, separador, modo_tv } = await req.json();
 
     // Validar dados
     if (!email || !password || !nome || !tipo_usuario || !id_filial || !id_setor) {
@@ -245,7 +245,10 @@ serve(async (req) => {
         id_setor,
         senha_hash: 'supabase_auth',
         ativo: true,
-        deve_trocar_senha: true // Força troca de senha no primeiro acesso
+        deve_trocar_senha: true, // Força troca de senha no primeiro acesso
+        agendador: !!agendador,
+        separador: !!separador,
+        modo_tv: !!modo_tv,
       })
       .select('id_usuario')
       .single();
