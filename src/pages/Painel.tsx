@@ -40,7 +40,19 @@ export default function Painel() {
   const [filtroStatus, setFiltroStatus] = useState<string>("all");
   const [filtroSetorOrigem, setFiltroSetorOrigem] = useState<string>("all");
   const [filtroSetorDestino, setFiltroSetorDestino] = useState<string>("all");
+  const [filtroMes, setFiltroMes] = useState<string>("all");
+  const [filtroAno, setFiltroAno] = useState<string>(String(new Date().getFullYear()));
   const isInitialLoadRef = useRef(true);
+
+  const meses = [
+    { v: "0", l: "Janeiro" }, { v: "1", l: "Fevereiro" }, { v: "2", l: "Março" },
+    { v: "3", l: "Abril" }, { v: "4", l: "Maio" }, { v: "5", l: "Junho" },
+    { v: "6", l: "Julho" }, { v: "7", l: "Agosto" }, { v: "8", l: "Setembro" },
+    { v: "9", l: "Outubro" }, { v: "10", l: "Novembro" }, { v: "11", l: "Dezembro" },
+  ];
+  const anosDisponiveis = Array.from(
+    new Set(chamados.map(c => c.data_abertura ? new Date(c.data_abertura).getFullYear() : null).filter(Boolean) as number[])
+  ).concat(new Date().getFullYear()).filter((v, i, a) => a.indexOf(v) === i).sort((a, b) => b - a);
 
   const isAuthorized = user?.eh_atendente || user?.eh_admin || user?.eh_diretor;
 
