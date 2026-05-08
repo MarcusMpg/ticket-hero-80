@@ -13,6 +13,7 @@ import { Chamado, Interacao } from "@/types/chamado";
 import { ArrowLeft, User, Clock, MessageSquare, Trash2, Paperclip, Download, ArrowRightLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { mapChamado, CHAMADOS_SELECT } from "@/hooks/useChamados";
+import { usePersistentState, clearPersistentState } from "@/hooks/usePersistentState";
 
 const statusConfig: Record<string, { label: string; variant: "info" | "warning" | "secondary" | "success" | "destructive" | "default" }> = {
   aberto: { label: "Aberto", variant: "info" },
