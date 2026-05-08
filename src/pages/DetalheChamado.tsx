@@ -131,6 +131,7 @@ export default function DetalheChamado() {
         conteudo: novoComentario,
       });
       setNovoComentario("");
+      clearPersistentState(`form:detalhe-chamado:${id}:comentario`);
       toast({ title: "Comentário adicionado", description: "Seu comentário foi registrado." });
     } catch (error: any) {
       toast({ title: "Erro", description: error.message, variant: "destructive" });
