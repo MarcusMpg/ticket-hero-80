@@ -53,7 +53,7 @@ export const CadastrarUsuarioDialog = ({ filiais, setores, onUsuarioCriado }: Ca
 
     try {
       // Validações
-      if (!formData.nome || !formData.email || !formData.senha || !formData.id_filial || !formData.id_setor) {
+      if (!formData.nome || !formData.email || !senha || !formData.id_filial || !formData.id_setor) {
         toast({
           title: "Erro",
           description: "Por favor, preencha todos os campos obrigatórios.",
@@ -62,7 +62,7 @@ export const CadastrarUsuarioDialog = ({ filiais, setores, onUsuarioCriado }: Ca
         return;
       }
 
-      if (formData.senha.length < 6) {
+      if (senha.length < 6) {
         toast({
           title: "Erro",
           description: "A senha deve ter pelo menos 6 caracteres.",
@@ -75,7 +75,7 @@ export const CadastrarUsuarioDialog = ({ filiais, setores, onUsuarioCriado }: Ca
       const { data, error } = await supabase.functions.invoke('criar-usuario', {
         body: {
           email: formData.email,
-          password: formData.senha,
+          password: senha,
           nome: formData.nome,
           tipo_usuario: formData.tipo_usuario,
           id_filial: parseInt(formData.id_filial),
