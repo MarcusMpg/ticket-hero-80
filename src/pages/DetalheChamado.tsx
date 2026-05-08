@@ -38,9 +38,9 @@ export default function DetalheChamado() {
   const [chamado, setChamado] = useState<Chamado | null>(null);
   const [interacoes, setInteracoes] = useState<Interacao[]>([]);
   const [anexos, setAnexos] = useState<any[]>([]);
-  const [novoComentario, setNovoComentario] = useState("");
+  const [novoComentario, setNovoComentario] = usePersistentState<string>(`form:detalhe-chamado:${id}:comentario`, "");
   const [novoStatus, setNovoStatus] = useState("");
-  const [justificativa, setJustificativa] = useState("");
+  const [justificativa, setJustificativa] = usePersistentState<string>(`form:detalhe-chamado:${id}:justificativa`, "");
   const [isLoading, setIsLoading] = useState(true);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
 
