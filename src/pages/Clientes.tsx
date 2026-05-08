@@ -69,7 +69,10 @@ export default function Clientes() {
       return;
     }
     setLoading(true);
-    const { error } = await supabase.from("cliente").insert(parsed.data);
+    const { error } = await supabase.from("cliente").insert({
+      nome: parsed.data.nome,
+      codigo_cliente: parsed.data.codigo_cliente,
+    });
     setLoading(false);
     if (error) {
       toast({ title: "Erro ao cadastrar", description: error.message, variant: "destructive" });
