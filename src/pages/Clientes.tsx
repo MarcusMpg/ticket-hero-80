@@ -83,7 +83,8 @@ export default function Clientes() {
     toast({ title: "Cliente cadastrado com sucesso" });
     setNome("");
     setCodigo("");
-    localStorage.removeItem(STORAGE_KEY);
+    clearPersistentState(`${STORAGE_KEY}:nome`);
+    clearPersistentState(`${STORAGE_KEY}:codigo`);
     carregar();
   };
 
