@@ -173,6 +173,14 @@ export default function AbrirChamado() {
         solicitante_nome: user.nome,
       });
 
+      [
+        "titulo",
+        "descricao",
+        "prioridade",
+        "setorDestino",
+        "tipoChamado",
+      ].forEach((k) => clearPersistentState(`${FORM_KEY}:${k}`));
+
       toast({
         title: "Chamado aberto com sucesso!",
         description: "Você pode acompanhar o status em 'Meus Chamados'.",
