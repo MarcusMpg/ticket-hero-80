@@ -30,13 +30,13 @@ interface TipoChamado {
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 export default function AbrirChamado() {
-  const [titulo, setTitulo] = useState("");
-  const [descricao, setDescricao] = useState("");
-  const [prioridade, setPrioridade] = useState("BAIXA");
-  const [setorDestino, setSetorDestino] = useState("");
+  const [titulo, setTitulo] = usePersistentState<string>(`${FORM_KEY}:titulo`, "");
+  const [descricao, setDescricao] = usePersistentState<string>(`${FORM_KEY}:descricao`, "");
+  const [prioridade, setPrioridade] = usePersistentState<string>(`${FORM_KEY}:prioridade`, "BAIXA");
+  const [setorDestino, setSetorDestino] = usePersistentState<string>(`${FORM_KEY}:setorDestino`, "");
   const [setores, setSetores] = useState<Setor[]>([]);
   const [setorOrigemNome, setSetorOrigemNome] = useState("");
-  const [tipoChamado, setTipoChamado] = useState("");
+  const [tipoChamado, setTipoChamado] = usePersistentState<string>(`${FORM_KEY}:tipoChamado`, "");
   const [tiposChamado, setTiposChamado] = useState<TipoChamado[]>([]);
   const [anexos, setAnexos] = useState<File[]>([]);
   const [isLoading, setIsLoading] = useState(false);
