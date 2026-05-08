@@ -43,17 +43,9 @@ export const CadastrarUsuarioDialog = ({ filiais, setores, onUsuarioCriado }: Ca
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  const [formData, setFormData] = useState({
-    nome: "",
-    email: "",
-    senha: "",
-    tipo_usuario: "USUARIO",
-    id_filial: "",
-    id_setor: "",
-    agendador: false,
-    separador: false,
-    modo_tv: false,
-  });
+  // Senha NÃO é persistida (segurança); demais campos sim.
+  const [formData, setFormData] = usePersistentState(`${FORM_KEY}:dados`, INITIAL_FORM);
+  const [senha, setSenha] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
