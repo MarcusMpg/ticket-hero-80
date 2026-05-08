@@ -36,26 +36,10 @@ export default function Clientes() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [clientes, setClientes] = useState<Cliente[]>([]);
-  const STORAGE_KEY = "clientes:form";
-  const [nome, setNome] = useState<string>(() => {
-    try {
-      return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}").nome || "";
-    } catch {
-      return "";
-    }
-  });
-  const [codigo, setCodigo] = useState<string>(() => {
-    try {
-      return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}").codigo || "";
-    } catch {
-      return "";
-    }
-  });
+  const STORAGE_KEY = "form:clientes";
+  const [nome, setNome] = usePersistentState<string>(`${STORAGE_KEY}:nome`, "");
+  const [codigo, setCodigo] = usePersistentState<string>(`${STORAGE_KEY}:codigo`, "");
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ nome, codigo }));
-  }, [nome, codigo]);
 
   const isAdmin = !!user?.eh_admin;
 
