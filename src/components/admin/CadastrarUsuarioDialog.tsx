@@ -103,17 +103,9 @@ export const CadastrarUsuarioDialog = ({ filiais, setores, onUsuarioCriado }: Ca
         description: "Usuário cadastrado com sucesso!",
       });
 
-      setFormData({
-        nome: "",
-        email: "",
-        senha: "",
-        tipo_usuario: "USUARIO",
-        id_filial: "",
-        id_setor: "",
-        agendador: false,
-        separador: false,
-        modo_tv: false,
-      });
+      setFormData(INITIAL_FORM);
+      setSenha("");
+      clearPersistentState(`${FORM_KEY}:dados`);
 
       setOpen(false);
       onUsuarioCriado?.();
