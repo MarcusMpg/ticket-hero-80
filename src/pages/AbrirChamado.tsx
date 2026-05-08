@@ -12,6 +12,9 @@ import { useToast } from "@/hooks/use-toast";
 import { Ticket, Paperclip, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { enviarNotificacaoNovoChamado } from "@/services/emailService";
+import { usePersistentState, clearPersistentState } from "@/hooks/usePersistentState";
+
+const FORM_KEY = "form:abrir-chamado";
 
 interface Setor {
   id_setor: number;
