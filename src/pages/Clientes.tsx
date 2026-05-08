@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { z } from "zod";
+import { usePersistentState, clearPersistentState } from "@/hooks/usePersistentState";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -35,26 +36,10 @@ export default function Clientes() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [clientes, setClientes] = useState<Cliente[]>([]);
-  const STORAGE_KEY = "clientes:form";
-  const [nome, setNome] = useState<string>(() => {
-    try {
-      return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}").nome || "";
-    } catch {
-      return "";
-    }
-  });
-  const [codigo, setCodigo] = useState<string>(() => {
-    try {
-      return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}").codigo || "";
-    } catch {
-      return "";
-    }
-  });
+  const STORAGE_KEY = "form:clientes";
+  const [nome, setNome] = usePersistentState<string>(`${STORAGE_KEY}:nome`, "");
+  const [codigo, setCodigo] = usePersistentState<string>(`${STORAGE_KEY}:codigo`, "");
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ nome, codigo }));
-  }, [nome, codigo]);
 
   const isAdmin = !!user?.eh_admin;
 
@@ -98,7 +83,8 @@ export default function Clientes() {
     toast({ title: "Cliente cadastrado com sucesso" });
     setNome("");
     setCodigo("");
-    localStorage.removeItem(STORAGE_KEY);
+    clearPersistentState(`${STORAGE_KEY}:nome`);
+    clearPersistentState(`${STORAGE_KEY}:codigo`);
     carregar();
   };
 

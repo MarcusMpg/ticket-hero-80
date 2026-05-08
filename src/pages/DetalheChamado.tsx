@@ -13,6 +13,7 @@ import { Chamado, Interacao } from "@/types/chamado";
 import { ArrowLeft, User, Clock, MessageSquare, Trash2, Paperclip, Download, ArrowRightLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { mapChamado, CHAMADOS_SELECT } from "@/hooks/useChamados";
+import { usePersistentState, clearPersistentState } from "@/hooks/usePersistentState";
 
 const statusConfig: Record<string, { label: string; variant: "info" | "warning" | "secondary" | "success" | "destructive" | "default" }> = {
   aberto: { label: "Aberto", variant: "info" },
@@ -37,9 +38,9 @@ export default function DetalheChamado() {
   const [chamado, setChamado] = useState<Chamado | null>(null);
   const [interacoes, setInteracoes] = useState<Interacao[]>([]);
   const [anexos, setAnexos] = useState<any[]>([]);
-  const [novoComentario, setNovoComentario] = useState("");
+  const [novoComentario, setNovoComentario] = usePersistentState<string>(`form:detalhe-chamado:${id}:comentario`, "");
   const [novoStatus, setNovoStatus] = useState("");
-  const [justificativa, setJustificativa] = useState("");
+  const [justificativa, setJustificativa] = usePersistentState<string>(`form:detalhe-chamado:${id}:justificativa`, "");
   const [isLoading, setIsLoading] = useState(true);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
 
@@ -130,6 +131,7 @@ export default function DetalheChamado() {
         conteudo: novoComentario,
       });
       setNovoComentario("");
+      clearPersistentState(`form:detalhe-chamado:${id}:comentario`);
       toast({ title: "Comentário adicionado", description: "Seu comentário foi registrado." });
     } catch (error: any) {
       toast({ title: "Erro", description: error.message, variant: "destructive" });
@@ -182,6 +184,7 @@ export default function DetalheChamado() {
             : `Chamado CONCLUÍDO. Resolução: ${justificativa}`,
         });
         setJustificativa("");
+        clearPersistentState(`form:detalhe-chamado:${id}:justificativa`);
       }
 
       toast({ title: "Status atualizado", description: "O status do chamado foi alterado." });

@@ -8,6 +8,19 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { usePersistentState, clearPersistentState } from "@/hooks/usePersistentState";
+
+const FORM_KEY = "form:cadastrar-usuario";
+const INITIAL_FORM = {
+  nome: "",
+  email: "",
+  tipo_usuario: "USUARIO",
+  id_filial: "",
+  id_setor: "",
+  agendador: false,
+  separador: false,
+  modo_tv: false,
+};
 
 interface Filial {
   id_filial: number;
@@ -30,17 +43,9 @@ export const CadastrarUsuarioDialog = ({ filiais, setores, onUsuarioCriado }: Ca
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  const [formData, setFormData] = useState({
-    nome: "",
-    email: "",
-    senha: "",
-    tipo_usuario: "USUARIO",
-    id_filial: "",
-    id_setor: "",
-    agendador: false,
-    separador: false,
-    modo_tv: false,
-  });
+  // Senha NÃO é persistida (segurança); demais campos sim.
+  const [formData, setFormData] = usePersistentState(`${FORM_KEY}:dados`, INITIAL_FORM);
+  const [senha, setSenha] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,7 +53,7 @@ export const CadastrarUsuarioDialog = ({ filiais, setores, onUsuarioCriado }: Ca
 
     try {
       // Validações
-      if (!formData.nome || !formData.email || !formData.senha || !formData.id_filial || !formData.id_setor) {
+      if (!formData.nome || !formData.email || !senha || !formData.id_filial || !formData.id_setor) {
         toast({
           title: "Erro",
           description: "Por favor, preencha todos os campos obrigatórios.",
@@ -57,7 +62,7 @@ export const CadastrarUsuarioDialog = ({ filiais, setores, onUsuarioCriado }: Ca
         return;
       }
 
-      if (formData.senha.length < 6) {
+      if (senha.length < 6) {
         toast({
           title: "Erro",
           description: "A senha deve ter pelo menos 6 caracteres.",
@@ -70,7 +75,7 @@ export const CadastrarUsuarioDialog = ({ filiais, setores, onUsuarioCriado }: Ca
       const { data, error } = await supabase.functions.invoke('criar-usuario', {
         body: {
           email: formData.email,
-          password: formData.senha,
+          password: senha,
           nome: formData.nome,
           tipo_usuario: formData.tipo_usuario,
           id_filial: parseInt(formData.id_filial),
@@ -98,17 +103,9 @@ export const CadastrarUsuarioDialog = ({ filiais, setores, onUsuarioCriado }: Ca
         description: "Usuário cadastrado com sucesso!",
       });
 
-      setFormData({
-        nome: "",
-        email: "",
-        senha: "",
-        tipo_usuario: "USUARIO",
-        id_filial: "",
-        id_setor: "",
-        agendador: false,
-        separador: false,
-        modo_tv: false,
-      });
+      setFormData(INITIAL_FORM);
+      setSenha("");
+      clearPersistentState(`${FORM_KEY}:dados`);
 
       setOpen(false);
       onUsuarioCriado?.();
@@ -165,8 +162,8 @@ export const CadastrarUsuarioDialog = ({ filiais, setores, onUsuarioCriado }: Ca
             <Input
               id="senha"
               type="password"
-              value={formData.senha}
-              onChange={(e) => setFormData({ ...formData, senha: e.target.value })}
+              value={senha}
+              onChange={(e) => setSenha(e.target.value)}
               placeholder="Mínimo 6 caracteres"
               required
               minLength={6}
