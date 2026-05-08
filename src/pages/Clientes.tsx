@@ -35,9 +35,26 @@ export default function Clientes() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [clientes, setClientes] = useState<Cliente[]>([]);
-  const [nome, setNome] = useState("");
-  const [codigo, setCodigo] = useState("");
+  const STORAGE_KEY = "clientes:form";
+  const [nome, setNome] = useState<string>(() => {
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}").nome || "";
+    } catch {
+      return "";
+    }
+  });
+  const [codigo, setCodigo] = useState<string>(() => {
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}").codigo || "";
+    } catch {
+      return "";
+    }
+  });
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ nome, codigo }));
+  }, [nome, codigo]);
 
   const isAdmin = !!user?.eh_admin;
 
@@ -81,6 +98,7 @@ export default function Clientes() {
     toast({ title: "Cliente cadastrado com sucesso" });
     setNome("");
     setCodigo("");
+    localStorage.removeItem(STORAGE_KEY);
     carregar();
   };
 
