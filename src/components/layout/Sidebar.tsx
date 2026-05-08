@@ -6,6 +6,7 @@ import {
   BarChart3,
   LayoutDashboard,
   ShieldCheck,
+  Building2,
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -45,11 +46,12 @@ export const Sidebar = ({ onNavigate }: SidebarProps) => {
     links = [
       ...atendenteLinks,
       { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { to: "/clientes", label: "Clientes", icon: Building2 },
     ];
   } else if (user?.eh_diretor) {
-    links = diretorLinks;
+    links = [...diretorLinks, { to: "/clientes", label: "Clientes", icon: Building2 }];
   } else if (user?.eh_atendente) {
-    links = atendenteLinks;
+    links = [...atendenteLinks, { to: "/clientes", label: "Clientes", icon: Building2 }];
   }
 
   return (
