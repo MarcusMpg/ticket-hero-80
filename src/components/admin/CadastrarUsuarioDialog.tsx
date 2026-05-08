@@ -8,6 +8,19 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { usePersistentState, clearPersistentState } from "@/hooks/usePersistentState";
+
+const FORM_KEY = "form:cadastrar-usuario";
+const INITIAL_FORM = {
+  nome: "",
+  email: "",
+  tipo_usuario: "USUARIO",
+  id_filial: "",
+  id_setor: "",
+  agendador: false,
+  separador: false,
+  modo_tv: false,
+};
 
 interface Filial {
   id_filial: number;
