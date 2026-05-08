@@ -179,6 +179,30 @@ export type Database = {
           },
         ]
       }
+      cliente: {
+        Row: {
+          ativo: boolean
+          codigo_cliente: string
+          data_cadastro: string
+          id_cliente: number
+          nome: string
+        }
+        Insert: {
+          ativo?: boolean
+          codigo_cliente: string
+          data_cadastro?: string
+          id_cliente?: number
+          nome: string
+        }
+        Update: {
+          ativo?: boolean
+          codigo_cliente?: string
+          data_cadastro?: string
+          id_cliente?: number
+          nome?: string
+        }
+        Relationships: []
+      }
       filial: {
         Row: {
           endereco: string | null
