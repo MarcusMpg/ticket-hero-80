@@ -184,6 +184,7 @@ export default function DetalheChamado() {
             : `Chamado CONCLUÍDO. Resolução: ${justificativa}`,
         });
         setJustificativa("");
+        clearPersistentState(`form:detalhe-chamado:${id}:justificativa`);
       }
 
       toast({ title: "Status atualizado", description: "O status do chamado foi alterado." });
