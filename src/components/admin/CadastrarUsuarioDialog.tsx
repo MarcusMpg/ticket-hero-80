@@ -162,8 +162,8 @@ export const CadastrarUsuarioDialog = ({ filiais, setores, onUsuarioCriado }: Ca
             <Input
               id="senha"
               type="password"
-              value={formData.senha}
-              onChange={(e) => setFormData({ ...formData, senha: e.target.value })}
+              value={senha}
+              onChange={(e) => setSenha(e.target.value)}
               placeholder="Mínimo 6 caracteres"
               required
               minLength={6}
