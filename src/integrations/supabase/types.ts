@@ -14,6 +14,60 @@ export type Database = {
   }
   public: {
     Tables: {
+      agendamento: {
+        Row: {
+          carro_app: boolean
+          created_at: string
+          data_hora_agendamento: string
+          descricao_veiculo: string
+          id_agendamento: number
+          id_cliente: number
+          id_usuario_criador: number | null
+          numero_pedido: string
+          placa_veiculo: string | null
+          updated_at: string
+        }
+        Insert: {
+          carro_app?: boolean
+          created_at?: string
+          data_hora_agendamento: string
+          descricao_veiculo: string
+          id_agendamento?: number
+          id_cliente: number
+          id_usuario_criador?: number | null
+          numero_pedido: string
+          placa_veiculo?: string | null
+          updated_at?: string
+        }
+        Update: {
+          carro_app?: boolean
+          created_at?: string
+          data_hora_agendamento?: string
+          descricao_veiculo?: string
+          id_agendamento?: number
+          id_cliente?: number
+          id_usuario_criador?: number | null
+          numero_pedido?: string
+          placa_veiculo?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agendamento_id_cliente_fkey"
+            columns: ["id_cliente"]
+            isOneToOne: false
+            referencedRelation: "cliente"
+            referencedColumns: ["id_cliente"]
+          },
+          {
+            foreignKeyName: "agendamento_id_usuario_criador_fkey"
+            columns: ["id_usuario_criador"]
+            isOneToOne: false
+            referencedRelation: "usuario"
+            referencedColumns: ["id_usuario"]
+          },
+        ]
+      }
       chamadoanexo: {
         Row: {
           caminho_servidor: string

@@ -17,6 +17,7 @@ import Estatisticas from "./pages/Estatisticas";
 import Dashboard from "./pages/Dashboard";
 import AprovacoesDiretoria from "./pages/AprovacoesDiretoria";
 import Clientes from "./pages/Clientes";
+import Agendar from "./pages/Agendar";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -101,6 +102,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Clientes />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/agendar"
+              element={
+                <ProtectedRoute>
+                  <Agendar />
                 </ProtectedRoute>
               }
             />
