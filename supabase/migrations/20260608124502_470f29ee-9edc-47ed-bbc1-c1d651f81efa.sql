@@ -1,0 +1,1 @@
+ALTER FUNCTION public.fn_processa_mudanca_status() SET search_path = public;
