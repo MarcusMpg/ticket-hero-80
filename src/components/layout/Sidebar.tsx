@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   ShieldCheck,
   Building2,
+  CalendarPlus,
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -41,17 +42,19 @@ export const Sidebar = ({ onNavigate }: SidebarProps) => {
     { to: "/estatisticas", label: "Estatísticas", icon: BarChart3 },
   ];
 
-  let links = solicitanteLinks;
+  const agendarLink = { to: "/agendar", label: "Agendar", icon: CalendarPlus };
+  let links = [...solicitanteLinks, agendarLink];
   if (user?.eh_admin) {
     links = [
       ...atendenteLinks,
       { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
       { to: "/clientes", label: "Clientes", icon: Building2 },
+      agendarLink,
     ];
   } else if (user?.eh_diretor) {
-    links = [...diretorLinks, { to: "/clientes", label: "Clientes", icon: Building2 }];
+    links = [...diretorLinks, { to: "/clientes", label: "Clientes", icon: Building2 }, agendarLink];
   } else if (user?.eh_atendente) {
-    links = [...atendenteLinks, { to: "/clientes", label: "Clientes", icon: Building2 }];
+    links = [...atendenteLinks, { to: "/clientes", label: "Clientes", icon: Building2 }, agendarLink];
   }
 
   return (
