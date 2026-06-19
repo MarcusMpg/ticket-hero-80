@@ -68,6 +68,48 @@ export type Database = {
           },
         ]
       }
+      audit_log: {
+        Row: {
+          acao: string
+          auth_uid: string | null
+          created_at: string
+          detalhes: string | null
+          id: number
+          id_chamado: number | null
+          id_usuario: number | null
+          registro_id: string | null
+          tabela: string
+          valores_antigos: Json | null
+          valores_novos: Json | null
+        }
+        Insert: {
+          acao: string
+          auth_uid?: string | null
+          created_at?: string
+          detalhes?: string | null
+          id?: number
+          id_chamado?: number | null
+          id_usuario?: number | null
+          registro_id?: string | null
+          tabela: string
+          valores_antigos?: Json | null
+          valores_novos?: Json | null
+        }
+        Update: {
+          acao?: string
+          auth_uid?: string | null
+          created_at?: string
+          detalhes?: string | null
+          id?: number
+          id_chamado?: number | null
+          id_usuario?: number | null
+          registro_id?: string | null
+          tabela?: string
+          valores_antigos?: Json | null
+          valores_novos?: Json | null
+        }
+        Relationships: []
+      }
       chamadoanexo: {
         Row: {
           caminho_servidor: string
